@@ -1,0 +1,72 @@
+:root {
+  /* SkillCorner Brand Colors */
+  --md-primary-fg-color:        #00a82f; /* SkillCorner Green */
+  --md-primary-fg-color--light: #32fe6b; /* Lime */
+  --md-primary-fg-color--dark:  #064c62; /* Dark Azure */
+  
+  --md-accent-fg-color:         #7acbff; /* Pastel Azure */
+  --md-accent-fg-color--transparent: transparent;
+  
+  /* Text and structural elements */
+  --md-typeset-color:           #252525; /* Dark gray */
+
+  /* Narrower Header & Tabs (Standard Material way) */
+  --md-header-height:           2.6rem;
+  --md-tabs-height:             2.4rem;
+}
+
+/* 1. Header (Primary Green) */
+[data-md-color-primary="custom"] .md-header {
+  background-color: var(--md-primary-fg-color);
+}
+
+/* 2. Tabs Bar (High Contrast Dark Gray) */
+/* This creates a clean separation so it's not a "giant green block" */
+[data-md-color-primary="custom"] .md-tabs {
+  background-color: #252525; 
+}
+
+/* Ensure tab links are white for contrast on the dark bar */
+.md-tabs__link {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+  transition: color 250ms;
+}
+
+.md-tabs__link--active, 
+.md-tabs__link:hover {
+  color: #fff;
+}
+
+/* Highlight the active tab with the Lime green for a premium look */
+.md-tabs__item--active .md-tabs__link {
+    border-bottom: 2px solid #32fe6b;
+}
+
+/* 3. Fixing Header Alignment for Narrower Height */
+.md-header__button {
+    padding-top: 0.1rem;
+    padding-bottom: 0.1rem;
+}
+
+.md-header__title {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* 4. Fix Search Bar height for compact header */
+.md-search__inner {
+    padding-top: 0.2rem;
+}
+
+/* 5. Adjust main content starting position to match compact header */
+.md-main__inner {
+  margin-top: 1rem;
+}
+
+/* 6. Mobile Sidebars Padding adjustment */
+@media screen and (max-width: 76.25em) {
+  .md-nav--primary {
+    top: 2.6rem;
+  }
+}
