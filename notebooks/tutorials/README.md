@@ -45,6 +45,7 @@ Welcome to the SkillCorner Open Data tutorials. We've organized our tutorials in
 | Tutorial | Description |
 | :------- | :---------- |
 | [**Sectioned Summary Table**](04_Visualizations/Sectioned_Summary_Table_Viz_Tutorial.ipynb) | Create a comprehensive table comparing players across multiple metric categories. |
+| [**OFF BAL RUN RADAR**](04_Visualizations/OBR_Simple_Radar_Viz.ipynb) | Create a standard offball run radar. |
 
 
 ---
