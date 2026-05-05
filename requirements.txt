@@ -6,6 +6,8 @@ mplsoccer
 polars
 humanize
 # SkillCorner Viz (optional depends on colab usage)
+skillcorner==3.1
+skillcornerviz
 
 # Documentation
 mkdocs-material>=9.5.0
