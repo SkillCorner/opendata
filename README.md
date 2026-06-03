@@ -4,12 +4,11 @@
 
 ### Description
 
-This repo contains data on 10 matches of broadcast tracking data collected by [SkillCorner](https://skillcorner.com), as well as a dataset on aggregated Physical data at the season level.
+This repo contains data on 10 matches of broadcast tracking data collected by [SkillCorner](https://skillcorner.com), as well as the derived Dynamic Events for those 10 games. The matches included are a sample of 2024/2025 league matches in the Australian A-League
 
-The matches included are a sample of 2024/2025 league matches in the Australian A-League
+It also contains aggregated Physical data at the season level across all games ofseason
 
 Broadcast tracking data is tracking data collected through computer vision and machine learning out of the broadcast video.
-
 
 ### Motivation
 
