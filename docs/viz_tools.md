@@ -6,12 +6,12 @@ SkillCorner Open Data includes standalone, browser-based HTML applications that 
 
 ## 💻 Available Tools
 
-You can find these tools in the repository under the `viz_tools/` directory:
+Download a tool below, or find them in the repository under the `viz_tools/` directory:
 
-| Tool Name | File Path | Supported Datasets | Key Features |
+| Tool Name | Download | Supported Datasets | Key Features |
 |---|---|---|---|
-| **SkillCorner Tracking Viewer** | `viz_tools/SkillCorner_Tracking_Viewer.html` | `*_tracking_extrapolated.jsonl`<br>`*_match.json` | 2D Pitch Animation, Convex Hulls, Player Trails, Playback Controls (0.25x-4x), Live Roster Inspector |
-| **Dynamic Events Explorer** | `viz_tools/Dynamic_Events_Explorer.html` | `*_dynamic_events.csv`<br>`*_phases_of_play.csv` | Spatial Run & Event Vectors, Phases of Play Timeline, Multi-Criteria Filters, Searchable Data Grid |
+| **SkillCorner Tracking Viewer** | [⬇️ Download](tools/SkillCorner_Tracking_Viewer.html){ .md-button download="SkillCorner_Tracking_Viewer.html" } | `*_tracking_extrapolated.jsonl`<br>`*_match.json` | 2D Pitch Animation, Convex Hulls, Player Trails, Playback Controls (0.25x-4x), Live Roster Inspector |
+| **Dynamic Events Explorer** | [⬇️ Download](tools/Dynamic_Events_Explorer.html){ .md-button download="Dynamic_Events_Explorer.html" } | `*_dynamic_events.csv`<br>`*_phases_of_play.csv` | Spatial Run & Event Vectors, Phases of Play Timeline, Multi-Criteria Filters, Searchable Data Grid |
 
 ---
 
