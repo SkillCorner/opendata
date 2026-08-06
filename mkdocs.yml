@@ -39,6 +39,10 @@ extra_css:
 markdown_extensions:
   - attr_list
 
+# docs/tools is a symlink to viz_tools/; publish the HTML apps but not their README
+exclude_docs: |
+  tools/README.md
+
 plugins:
   - search
   - tags

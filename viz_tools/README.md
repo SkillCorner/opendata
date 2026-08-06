@@ -6,7 +6,7 @@ Interactive, browser-based visualizer applications for exploring SkillCorner Ope
 
 ## 🚀 Available Tools
 
-### 1. 📍 [SkillCorner Tracking Viewer](file:///Users/nano/PycharmProjects/opendata/viz_tools/SkillCorner_Tracking_Viewer.html)
+### 1. 📍 [SkillCorner Tracking Viewer](SkillCorner_Tracking_Viewer.html)
 - **File:** `SkillCorner_Tracking_Viewer.html`
 - **Supported Datasets:** 
   - `*_tracking_extrapolated.jsonl` (Tracking Data)
@@ -19,7 +19,7 @@ Interactive, browser-based visualizer applications for exploring SkillCorner Ope
 
 ---
 
-### 2. ⚡ [Dynamic Events Explorer](file:///Users/nano/PycharmProjects/opendata/viz_tools/Dynamic_Events_Explorer.html)
+### 2. ⚡ [Dynamic Events Explorer](Dynamic_Events_Explorer.html)
 - **File:** `Dynamic_Events_Explorer.html`
 - **Supported Datasets:**
   - `*_dynamic_events.csv` (Dynamic Events)
