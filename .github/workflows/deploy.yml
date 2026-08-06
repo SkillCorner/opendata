@@ -4,6 +4,7 @@ on:
     branches:
       - master
       - main
+  workflow_dispatch:
 
 # This gives the action permission to actually publish the site
 permissions:
