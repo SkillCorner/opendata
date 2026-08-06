@@ -67,5 +67,5 @@ nav:
     - 'Path 04: Visualizations':
       - '📊 Sectioned Summary Table': notebooks/tutorials/04_Visualizations/Sectioned_Summary_Table_Viz_Tutorial.ipynb
       - '📡 OffBall Runs Radar': notebooks/tutorials/04_Visualizations/OBR_Simple_Radar_Viz.ipynb
-  - '🛠️ Viz Tools': docs/viz_tools.md
+  - '🛠️ Viz Tools': viz_tools.md
   - Source Code Setup: src.md
