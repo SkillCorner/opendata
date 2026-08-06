@@ -101,7 +101,7 @@ class PhasesOfPlayAggregator:
 
         next_phase_in_possession_phase_aggs = self.phases_of_play_df.groupby([
             'team_out_of_possession_id', 'team_out_of_possession_phase_type', 'team_out_of_possession_next_phase'
-        ]).agg(count=('index', 'count')).reset_index()
+        ]).agg(count=('frame_start', 'count')).reset_index()
 
         next_phase_in_possession_phase_aggs['team_phase_id'] = (
                 next_phase_in_possession_phase_aggs['team_out_of_possession_id'].astype(str) + '_' +
@@ -174,7 +174,7 @@ class PhasesOfPlayAggregator:
 
         next_phase_in_possession_phase_aggs = self.phases_of_play_df.groupby([
             'team_in_possession_id', 'team_in_possession_phase_type', 'team_in_possession_next_phase'
-        ]).agg(count=('index', 'count')).reset_index()
+        ]).agg(count=('frame_start', 'count')).reset_index()
 
         next_phase_in_possession_phase_aggs['team_phase_id'] = (
                 next_phase_in_possession_phase_aggs['team_in_possession_id'].astype(str) + '_' +

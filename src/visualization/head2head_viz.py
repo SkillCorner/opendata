@@ -50,6 +50,8 @@ def plot_head2head(
         rval = float(df.loc[df[category_column] == cat_right, m].values[0])
         rows.append({"metric": m, "label": metric_labels.get(m, m), "L": lval, "R": rval})
     d = pd.DataFrame(rows)
+    d["L"] = d["L"].fillna(0.0)
+    d["R"] = d["R"].fillna(0.0)
 
     # --- figure ---
     fig, ax = plt.subplots(figsize=(14, max(5, len(metrics) * 0.65)), constrained_layout=True)
@@ -109,7 +111,7 @@ def plot_head2head(
     # --- value labels at bar ends ---
     label_pad = 0.012 * (2 * xmax)
     for i, r in d.iterrows():
-        suf = "" if unit==None else unit
+        suf = "" if unit is None else unit
         ax.text(-gap - r["L"] - label_pad, i, f"{r['L']:.1f}{suf}",
                 ha="right", va="center", fontsize=11, fontweight="bold", color="#111827",
                 path_effects=[pe.withStroke(linewidth=2.0, foreground="white")], zorder=5)

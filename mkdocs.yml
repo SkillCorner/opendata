@@ -60,10 +60,12 @@ nav:
       - '🔗 Part 4: Merging Track/Event': notebooks/tutorials/02_Working_with_Game_Intelligence_and_Dynamic_Events/Part4_Merging_Dynamic_Events_and_Tracking_Data_Tutorial.ipynb
       - '🎬 Part 5: Animated Video': notebooks/tutorials/02_Working_with_Game_Intelligence_and_Dynamic_Events/Part5_Animated_2D_Video_From_Tracking_And_Events.ipynb
       - '📈 Part 6: Build Your Own Metric': notebooks/tutorials/02_Working_with_Game_Intelligence_and_Dynamic_Events/Part6_BuildYourOwnMetric_Detecting_and_Evaluating_Cutback_Opportunities.ipynb
+      - '🗺️ Part 7: Pitch Maps by Phase': notebooks/tutorials/02_Working_with_Game_Intelligence_and_Dynamic_Events/Part7_Pitch_Maps_Tracking_by_Phase_Tutorial.ipynb
     - 'Path 03: Basics of Tracking':
       - '📍 Tracking Core': notebooks/tutorials/03_Basics_of_Tracking/Open_Data_Tracking_Tutorial.ipynb
       - '🚀 Kloppy Integration': notebooks/tutorials/03_Basics_of_Tracking/Open_Data_Getting_Started_with_Tracking_and_Kloppy_Tutorial.ipynb
     - 'Path 04: Visualizations':
       - '📊 Sectioned Summary Table': notebooks/tutorials/04_Visualizations/Sectioned_Summary_Table_Viz_Tutorial.ipynb
       - '📡 OffBall Runs Radar': notebooks/tutorials/04_Visualizations/OBR_Simple_Radar_Viz.ipynb
+  - '🛠️ Viz Tools': docs/viz_tools.md
   - Source Code Setup: src.md

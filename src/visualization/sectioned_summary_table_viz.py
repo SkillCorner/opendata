@@ -93,7 +93,7 @@ def ranking_plot(df, questions, highlight_group,
                                             alpha=1)])
         i -= 1
         for metric in questions[key]:
-            if metric_labels != None:
+            if metric_labels is not None:
                 metric_label = metric_labels[metric]
             else:
                 metric_label = metric.replace('count_', '')
