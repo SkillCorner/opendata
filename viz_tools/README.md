@@ -25,7 +25,7 @@ Interactive, browser-based visualizer applications for exploring SkillCorner Ope
   - `*_dynamic_events.csv` (Dynamic Events)
   - `*_phases_of_play.csv` (Phases of Play)
 - **Key Features:**
-  - 🗺️ **Spatial Event Pitch Map:** Visualize off-ball run vectors, passes, on ball engagements events, and positional clusters. Compare two players in the head to head section
+  - 🗺️ **Spatial Event Pitch Map:** Visualize off-ball run vectors, passes, on ball engagements events, and average positions (start → end), grouped by position group. Compare two players in the head to head section
   - 🔎 **Multi-Criteria Filtering:** Filter events by category, phase type (`build_up`, `high_block`, etc.), team, period, and speed band.
   - 📋 **Summary Table** View summary stats for each player across all events
 
