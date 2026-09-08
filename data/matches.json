@@ -16,6 +16,22 @@
     "competition_edition_id": 870
   },
   {
+    "id": 2016236,
+    "date_time": "2025-05-09T09:35:00Z",
+    "home_team": {
+      "id": 1803,
+      "short_name": "Western United"
+    },
+    "away_team": {
+      "id": 866,
+      "short_name": "Adelaide United"
+    },
+    "status": "closed",
+    "competition_id": 61,
+    "season_id": 95,
+    "competition_edition_id": 870
+  },
+  {
     "id": 2015213,
     "date_time": "2025-05-03T08:00:00Z",
     "home_team": {
@@ -64,6 +80,70 @@
     "competition_edition_id": 870
   },
   {
+    "id": 2010085,
+    "date_time": "2025-04-05T06:00:00Z",
+    "home_team": {
+      "id": 2380,
+      "short_name": "Melbourne City"
+    },
+    "away_team": {
+      "id": 870,
+      "short_name": "CC Mariners"
+    },
+    "status": "closed",
+    "competition_id": 61,
+    "season_id": 95,
+    "competition_edition_id": 870
+  },
+  {
+    "id": 2007721,
+    "date_time": "2025-03-16T04:00:00Z",
+    "home_team": {
+      "id": 4177,
+      "short_name": "Auckland FC"
+    },
+    "away_team": {
+      "id": 870,
+      "short_name": "CC Mariners"
+    },
+    "status": "closed",
+    "competition_id": 61,
+    "season_id": 95,
+    "competition_edition_id": 870
+  },
+  {
+    "id": 2007448,
+    "date_time": "2025-03-15T10:45:00Z",
+    "home_team": {
+      "id": 871,
+      "short_name": "Perth Glory"
+    },
+    "away_team": {
+      "id": 1802,
+      "short_name": "Brisbane FC"
+    },
+    "status": "closed",
+    "competition_id": 61,
+    "season_id": 95,
+    "competition_edition_id": 870
+  },
+  {
+    "id": 2006363,
+    "date_time": "2025-03-08T08:35:00Z",
+    "home_team": {
+      "id": 868,
+      "short_name": "Melbourne V FC"
+    },
+    "away_team": {
+      "id": 870,
+      "short_name": "CC Mariners"
+    },
+    "status": "closed",
+    "competition_id": 61,
+    "season_id": 95,
+    "competition_edition_id": 870
+  },
+  {
     "id": 2006229,
     "date_time": "2025-03-07T08:35:00Z",
     "home_team": {
@@ -96,6 +176,54 @@
     "competition_edition_id": 870
   },
   {
+    "id": 1996436,
+    "date_time": "2025-02-01T04:00:00Z",
+    "home_team": {
+      "id": 4177,
+      "short_name": "Auckland FC"
+    },
+    "away_team": {
+      "id": 1804,
+      "short_name": "Macarthur FC"
+    },
+    "status": "closed",
+    "competition_id": 61,
+    "season_id": 95,
+    "competition_edition_id": 870
+  },
+  {
+    "id": 1986691,
+    "date_time": "2025-01-26T06:00:00Z",
+    "home_team": {
+      "id": 2902,
+      "short_name": "Western Sydney"
+    },
+    "away_team": {
+      "id": 4177,
+      "short_name": "Auckland FC"
+    },
+    "status": "closed",
+    "competition_id": 61,
+    "season_id": 95,
+    "competition_edition_id": 870
+  },
+  {
+    "id": 1959846,
+    "date_time": "2025-01-10T08:35:00Z",
+    "home_team": {
+      "id": 868,
+      "short_name": "Melbourne V FC"
+    },
+    "away_team": {
+      "id": 1803,
+      "short_name": "Western United"
+    },
+    "status": "closed",
+    "competition_id": 61,
+    "season_id": 95,
+    "competition_edition_id": 870
+  },
+  {
     "id": 1953632,
     "date_time": "2024-12-31T08:00:00Z",
     "home_team": {
@@ -107,6 +235,22 @@
       "short_name": "Melbourne City"
     },
     "status": "not_started",
+    "competition_id": 61,
+    "season_id": 95,
+    "competition_edition_id": 870
+  },
+  {
+    "id": 1927964,
+    "date_time": "2024-12-22T06:00:00Z",
+    "home_team": {
+      "id": 2902,
+      "short_name": "Western Sydney"
+    },
+    "away_team": {
+      "id": 867,
+      "short_name": "Wellington P FC"
+    },
+    "status": "closed",
     "competition_id": 61,
     "season_id": 95,
     "competition_edition_id": 870
@@ -153,6 +297,22 @@
     "away_team": {
       "id": 1805,
       "short_name": "Newcastle"
+    },
+    "status": "closed",
+    "competition_id": 61,
+    "season_id": 95,
+    "competition_edition_id": 870
+  },
+  {
+    "id": 1874553,
+    "date_time": "2024-11-23T06:00:00Z",
+    "home_team": {
+      "id": 1802,
+      "short_name": "Brisbane FC"
+    },
+    "away_team": {
+      "id": 866,
+      "short_name": "Adelaide United"
     },
     "status": "closed",
     "competition_id": 61,

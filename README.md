@@ -83,6 +83,29 @@ Note:
 
 For a full documentation of dynamic_events, refer to this [documentation here](https://26560301.fs1.hubspotusercontent-eu1.net/hubfs/26560301/Guides/Dynamic%20Events/20250216%20-%20Dynamic%20Events%20CSV%20Specifications.pdf)
 
+#### 🎯 EPV (Expected Possession Value)
+
+Twelve columns describing how a possession shifts the likelihood of scoring and of conceding. They are populated on `player_possession` rows only, and are left empty on every other event type.
+
+* `possession_epv_for_start` / `possession_epv_for_end` — value for the attacking team at the start and end of the possession
+* `possession_epv_against_start` / `possession_epv_against_end` — the equivalent against
+* `possession_epv_delta_for` / `possession_epv_delta_against` — the change across the possession
+* `possession_epv_total` — net value of the possession
+* `pass_reception_epv_for` / `pass_reception_epv_against` — value at the reception of the pass
+* `pass_epv_delta_for` / `pass_epv_delta_against` / `pass_epv_total` — the pass equivalents
+
+#### 🧲 Pressure and difficulty
+
+Eight measures of how constrained the player in possession was. Each is supplied twice: a text label and a numeric `*_id` on a 1–5 scale, where 1 is the least constrained. Like EPV, these are populated on `player_possession` rows only.
+
+* `overall_pressure_start` / `overall_pressure_end` — `no_pressure`, `low_pressure`, `medium_pressure`, `high_pressure`, `very_high_pressure`
+* `reception_difficulty_start` — difficulty of the reception that started the possession
+* `space_constraint_start` — how tightly the player was hemmed in
+* `time_to_impact_start` / `time_to_impact_end` — how quickly an opponent could reach the player
+* `passing_option_ease_start` / `passing_option_ease_end` — how available the passing options were
+
+The five band labels for these run `very_easy`, `easy`, `medium`, `hard`, `very_hard`.
+
 ### 🔄 Phases of Play File
 
 The phase of play data is CSV. Each row corresponds to the start and end frames of a given phase
