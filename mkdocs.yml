@@ -74,5 +74,7 @@ nav:
     - 'Path 04: Visualizations':
       - '📊 Sectioned Summary Table': notebooks/tutorials/04_Visualizations/Sectioned_Summary_Table_Viz_Tutorial.ipynb
       - '📡 OffBall Runs Radar': notebooks/tutorials/04_Visualizations/OBR_Simple_Radar_Viz.ipynb
+    - 'Path 05: Body Pose':
+      - '🦴 Getting Started with Body Pose': notebooks/tutorials/05_Body_Pose/Part1_Getting_Started_with_Body_Pose.ipynb
   - '🛠️ Viz Tools': viz_tools.md
   - Source Code Setup: src.md

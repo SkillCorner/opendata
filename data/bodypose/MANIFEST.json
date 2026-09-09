@@ -1,0 +1,39 @@
+{
+  "description": "Where the full body pose files live and what each should look like when downloaded. Read by src/data/pose_loading.py; you do not need to edit it. See data/bodypose/README.md.",
+  "hf_dataset": "SkillCorner/opendata-bodypose",
+  "hf_revision": "main",
+  "base_url": "https://huggingface.co/datasets/SkillCorner/opendata-bodypose/resolve/main",
+  "frame_rate_fps": 25,
+  "tracking_frame_rate_fps": 10,
+  "matches": {
+    "1925299": {
+      "fixture": "Brisbane Roar v Perth Glory",
+      "date": "2024-12-21",
+      "file": "raw/1925299.jsonl.zip"
+    },
+    "1996435": {
+      "fixture": "Sydney FC v Adelaide United",
+      "date": "2025-02-01",
+      "file": "raw/1996435.jsonl.zip"
+    }
+  },
+  "files": {
+    "raw/1925299.jsonl.zip": {
+      "size_bytes": 623408231,
+      "sha256": "0415665098d594fb5681815000f7a6312037788a3237910a9f41bb8de5c336a0"
+    },
+    "raw/1996435.jsonl.zip": {
+      "size_bytes": 644327811,
+      "sha256": "64bcab2be9776172d062521d9a97e0e6f391fc9cacb331f9e42a6fe88cf8434b"
+    }
+  },
+  "sample": {
+    "file": "sample_1925299_phase406.jsonl.gz",
+    "match_id": 1925299,
+    "phase_index": 406,
+    "tracking_frame_start": 49795,
+    "tracking_frame_end": 49918,
+    "pose_frames": 309,
+    "joint_observations": 143637
+  }
+}

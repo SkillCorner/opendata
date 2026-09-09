@@ -47,5 +47,15 @@ Welcome to the SkillCorner Open Data tutorials. We've organized our tutorials in
 | [**Sectioned Summary Table**](04_Visualizations/Sectioned_Summary_Table_Viz_Tutorial.ipynb) | Create a comprehensive table comparing players across multiple metric categories. |
 | [**OffBall Runs Radar**](04_Visualizations/OBR_Simple_Radar_Viz.ipynb) | Create a standard offball run radar. |
 
+---
+
+## 🦴 Path 05: Body Pose
+*3D body pose: 29 joints per player, and how to turn them into features.*
+
+| Tutorial | Description |
+| :------- | :---------- |
+| [**Getting Started with Body Pose**](05_Body_Pose/Part1_Getting_Started_with_Body_Pose.ipynb) | Load the pose sample, check per-joint accuracy, draw a skeleton, and derive body orientation from the shoulders. |
+
+💡 *Note: the schema, limitations and frame-rate conversion are documented in [**`data/bodypose/README.md`**](../../data/bodypose/README.md). Full matches are on the [Hugging Face Hub](https://huggingface.co/datasets/SkillCorner/opendata-bodypose); a single phase of play is committed here so the tutorial runs without a download.*
 
 ---

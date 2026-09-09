@@ -28,6 +28,7 @@ The `data` directory contains:
 * `matches.json` file with basic information about the match. Using this file, pick the `id` of your match of interest.
 * `matches` folder with one folder for each match (named with its `id`).
 * `aggregates` folder with CSVs for season-level, aggregated data (Physical, Off-Ball Runs, and Passing) for the AUS 1 League in 2024/2025.
+* `bodypose` folder with 3D body pose — 29 joints per player — for two matches. See [`data/bodypose/README.md`](data/bodypose/README.md).
 
 For each match, there are four files files:
 
@@ -105,6 +106,22 @@ Eight measures of how constrained the player in possession was. Each is supplied
 * `passing_option_ease_start` / `passing_option_ease_end` — how available the passing options were
 
 The five band labels for these run `very_easy`, `easy`, `medium`, `hard`, `very_hard`.
+
+### 🦴 Body Pose
+
+Body Pose follows a structure that is similar to XY Tracking data. It is enriching the 2D tracking file with 29 key points, or "joints", per player, positioned on the pitch with 3D coordinates. The file is at 25 FPS, with the standard 2D XY positions interpolated to fit in the same frame rate. Each key point estimation is associated to a predicted error, in centimeters. This error is defined so that 90% of estimated key points are sitting within this error radius of the joint position, relative to the player's pose.
+
+Available for two matches — 1925299 and 1996435 — both of which also have tracking, dynamic events and phases of play here. The full files are around 3.3 GB of JSON each, so they are hosted on the Hugging Face Hub rather than in this repository:
+
+**[huggingface.co/datasets/SkillCorner/opendata-bodypose](https://huggingface.co/datasets/SkillCorner/opendata-bodypose)**
+
+A single phase of play is committed under `data/bodypose/` so the tutorial runs without a download. See [`data/bodypose/README.md`](data/bodypose/README.md) for the schema, limitations and the frame-rate conversion, and `notebooks/tutorials/05_Body_Pose/` for a worked example.
+
+**Limitations**
+
+* Body Pose is only provided for detected players.
+* Position on the z-axis is accurate relatively to the player's centroid, but not necessarily in the pitch coordinate system. This will come with future Body Pose enhancements.
+* XY Tracking data and Body Pose are generated separately. This can cause minor misalignments between the XY attributes (positions, `is_detected` flag) and the Body Pose joints.
 
 ### 🔄 Phases of Play File
 
