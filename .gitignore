@@ -23,3 +23,6 @@ notebooks/exploratory/
 # MkDocs
 site/
 .cache/
+
+# extracted frames written by notebooks/defensive_shape_fitting.ipynb
+data/derived/
