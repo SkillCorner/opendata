@@ -87,11 +87,12 @@ body.pitch-focus{overflow:hidden}
 .receiving-gradient{display:inline-block;width:67.5px;height:9px;border-radius:6px;background:linear-gradient(to right,#f5faf5,#00ff00)}
 .receiving-legend #receivingStatus,.receiving-legend small{flex-basis:100%;font-size:9px;letter-spacing:normal;color:#b6cdd0}
 
-.danger-details{margin:0 0 14px;border:0;background:transparent}
-.danger-details>summary{list-style:none;cursor:pointer;min-height:44px;gap:16px;padding:4px 0}
-.danger-details>summary::-webkit-details-marker{display:none}
-.danger-details>summary:focus-visible{outline:2px solid #a6ead0;outline-offset:4px;border-radius:4px}
-.game-heading{display:flex;align-items:center;gap:10px;min-width:0}
+.match-header{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:14px;margin-bottom:12px;flex-shrink:0}
+.match-header .game-heading{margin:0;min-width:0;font-size:19px}
+#toggleDanger{display:flex;align-items:center;gap:10px;width:auto;margin:0;padding:4px 0;min-height:44px;background:transparent;color:#e1ecee;text-align:left;font:inherit;font-weight:700}
+#focusPitch{width:auto;margin:0;padding:10px 16px;min-height:44px;justify-self:center}
+.match-header #clock{justify-self:end;white-space:nowrap}
 .disclosure-triangle{width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:7px solid #a6ead0;flex-shrink:0;transform-origin:3px 5px}
-.danger-details[open] .disclosure-triangle{transform:rotate(90deg)}
-.danger-details .danger-panel{margin-top:8px}
+#toggleDanger[aria-expanded="true"] .disclosure-triangle{transform:rotate(90deg)}
+#dangerPanel{flex-shrink:0}
+@media(max-width:600px){.match-header{gap:8px}.match-header .game-heading{font-size:13px}#toggleDanger{gap:6px}#focusPitch{padding:8px;font-size:11px}.match-header #clock{font-size:14px}}

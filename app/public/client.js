@@ -31,7 +31,6 @@ const mobileLayout=window.matchMedia('(max-width: 900px)');
 function setControlLayout(){$('meshControls').open=!mobileLayout.matches;}
 setControlLayout();
 mobileLayout.addEventListener?.('change',()=>{setControlLayout();requestAnimationFrame(draw);});
-function showControls(id){$(id).open=true;$(id).scrollIntoView({block:'start',behavior:'smooth'});}
 function showClipPanel(which){
  const chance=which==='chance';$('chancePanel').hidden=!chance;$('clipDetails').hidden=chance;
  $('showChances').setAttribute('aria-expanded',String(chance));$('showClipDetails').setAttribute('aria-expanded',String(!chance));
@@ -40,7 +39,7 @@ function showClipPanel(which){
 $('showChances').onclick=()=>showClipPanel('chance');
 $('showClipDetails').onclick=()=>showClipPanel('details');
 showClipPanel('chance');
-$('showMesh').onclick=()=>showControls('meshControls');
+$('toggleDanger').onclick=()=>{const open=$('toggleDanger').getAttribute('aria-expanded')!=='true';$('toggleDanger').setAttribute('aria-expanded',String(open));$('dangerPanel').hidden=!open;requestAnimationFrame(draw);};
 function leaveFocus(){document.body.classList.remove('pitch-focus');$('focusPitch').textContent='Expand pitch';$('focusPitch').setAttribute('aria-pressed','false');requestAnimationFrame(draw);}
 $('focusPitch').onclick=()=>{if(document.body.classList.contains('pitch-focus')){leaveFocus();return;}document.body.classList.add('pitch-focus');$('focusPitch').textContent='Exit expanded view';$('focusPitch').setAttribute('aria-pressed','true');requestAnimationFrame(draw);};
 window.addEventListener('keydown',e=>{if(e.key==='Escape'){if(selected)closeTile();else leaveFocus();}});
