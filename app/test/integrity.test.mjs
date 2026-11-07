@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {buildIntegrity,assignment} from '../public/integrity.js';
-import {PassPlayback} from '../public/pass-playback.js';
+import {PassPlayback,passOverlayOpacity} from '../public/pass-playback.js';
 const settings=JSON.parse(await readFile(new URL('../../notebooks/fitted/pitch_control_settings.json',import.meta.url))).settings;
 const valueModel=JSON.parse(await readFile(new URL('../../notebooks/fitted/value_model.json',import.meta.url)));
 const meta={pitch_length:104,pitch_width:68,home_team:{id:1},away_team:{id:2},home_team_side:['left_to_right','right_to_left'],players:[{id:1,team_id:1,short_name:'Carrier'},{id:2,team_id:1,short_name:'Receiver'},{id:3,team_id:2,short_name:'Defender'}]};
@@ -42,4 +42,11 @@ test('preview pause is one second regardless of speed, and completion is drawn b
  assert.equal(p.advance(20,25,frames,passes,1200).event,null);
  p.seek(25,1,passes);assert.equal(p.advance(25,30,frames,passes,1300).event,null);
  p.reset();assert.equal(p.advance(0,10,frames,passes,2000).waiting,true);
+});
+
+test('pass overlay is fully visible at release and eases to zero at completion',()=>{
+ const event={release:10,complete:30,period:1};const opacity=f=>passOverlayOpacity(event,{frame:f,period:1});
+ assert.equal(opacity(10),1);assert.equal(opacity(20),.6);assert.equal(opacity(30),0);
+ let previous=1;for(let f=10;f<=30;f++){assert.ok(opacity(f)<=previous);previous=opacity(f);}
+ assert.ok(opacity(29)<.01);assert.equal(passOverlayOpacity(event,{frame:10,period:2}),0);
 });

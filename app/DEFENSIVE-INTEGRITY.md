@@ -43,8 +43,10 @@ prevents duplicate recommendations. At most five recorded options are shown; few
 are shown if fewer distinct options exist. Only when annotations are absent do
 tracked off-ball teammates provide fallback options, explicitly labelled in the UI.
 
-Dashed arrows stay frozen through the next possession start, including interception
-or unsuccessful passes. Playback clamps to that completion frame before removing
+Dashed arrow geometry stays frozen through the next possession start, including
+interception or unsuccessful passes. The slimmer lines ease out as the ball travels:
+opacity = min(1, 1.2 × (1 − smoothstep(pass progress))). The 20% boost is capped at
+full opacity; the one-second preview stays fully opaque and completion is transparent. Playback clamps to that completion frame before removing
 the overlay, even at high speed or across skipped render frames. A white casing
 keeps arrows visible; the inner dashed line is darker for higher-value passes.
 Numbers and net EPV gains accompany the arrows. Negative gains remain labelled as

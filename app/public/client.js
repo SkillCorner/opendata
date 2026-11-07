@@ -1,6 +1,6 @@
 import {SETTING_HELP,settingHelp} from './settings-help.js';
 import {buildIntegrity,integrityColour} from './integrity.js';
-import {PassPlayback} from './pass-playback.js';
+import {PassPlayback,passOverlayOpacity} from './pass-playback.js';
 import {buildPassing,haloColour} from './passing.js';
 import {buildAccess,accessColour} from './access.js';
 import {possessionSource,POSSESSION_HOLD_FRAMES} from './possession.js';
@@ -37,12 +37,13 @@ function passRecommendation(event){
 function drawPassAdvice(px){
  const recommendation=passRecommendation(passPlayback.active);
  if(!recommendation?.options.length){$('passAdvice').textContent='';return;}
+ const opacity=passOverlayOpacity(passPlayback.active,frames[index]);
  const opts=recommendation.options,maximum=Math.max(...opts.map(o=>o.gain)),minimum=Math.min(...opts.map(o=>o.gain));
- ctx.save();
+ ctx.save();ctx.globalAlpha=opacity;
  for(let i=opts.length-1;i>=0;i--){const o=opts[i],t=maximum===minimum?1:(o.gain-minimum)/(maximum-minimum),[x,y]=px(o.x,o.y),[bx,by]=px(recommendation.ball.x,recommendation.ball.y);
-  ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(x,y);ctx.setLineDash([8,6]);ctx.strokeStyle='#ffffff';ctx.lineWidth=5;ctx.stroke();
-  const shade=Math.round(165*(1-t));ctx.strokeStyle=`rgb(${shade},${shade},${shade})`;ctx.lineWidth=3;ctx.stroke();ctx.setLineDash([]);
-  const angle=Math.atan2(y-by,x-bx);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-10*Math.cos(angle-.45),y-10*Math.sin(angle-.45));ctx.moveTo(x,y);ctx.lineTo(x-10*Math.cos(angle+.45),y-10*Math.sin(angle+.45));ctx.stroke();
+  ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(x,y);ctx.setLineDash([8,6]);ctx.strokeStyle='#ffffff';ctx.lineWidth=3;ctx.stroke();
+  const shade=Math.round(165*(1-t));ctx.strokeStyle=`rgb(${shade},${shade},${shade})`;ctx.lineWidth=1.8;ctx.stroke();ctx.setLineDash([]);
+  const angle=Math.atan2(y-by,x-bx);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-8*Math.cos(angle-.45),y-8*Math.sin(angle-.45));ctx.moveTo(x,y);ctx.lineTo(x-8*Math.cos(angle+.45),y-8*Math.sin(angle+.45));ctx.stroke();
   ctx.beginPath();ctx.arc(x,y,9,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle='#142128';ctx.lineWidth=1;ctx.stroke();ctx.fillStyle='#08191d';ctx.font='bold 11px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(String(i+1),x,y);
  }
  ctx.restore();
@@ -101,6 +102,7 @@ function updateSettingHelp(){
  if(!activeSettingHelp)return;
  const info=settingHelp(activeSettingHelp,$(activeSettingHelp).value,$('legacyDanger').checked);
  $('settingHelpTitle').textContent=info.title;$('settingHelpText').textContent=info.text;
+ $('settingHelpEquation').textContent=info.equation??'';$('settingHelpEquation').hidden=!info.equation;
 }
 function positionSettingHelp(){
  if(!activeSettingHelp)return;

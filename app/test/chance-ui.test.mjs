@@ -66,7 +66,7 @@ for(const mobile of [false,true])test(`client chance playback and ${mobile?'mobi
  element('scrub').value=100;element('scrub').oninput();
  for(const kind of ['control','danger','pass','tiles']){element('integrityColour').value=kind;element('integrityColour').onchange();assert.match(element('inspect').textContent,/Integrity \(value-weighted protection\)/);}
  element('help-integrityColour').onclick();assert.match(element('settingHelpTitle').textContent,/Defensive Tiling/);
- element('integrityColour').value='control';element('integrityColour').listeners.get('change')();assert.match(element('settingHelpText').textContent,/arrival-time race/);
+ element('integrityColour').value='control';element('integrityColour').listeners.get('change')();assert.match(element('settingHelpText').textContent,/arrival-time race/);assert.equal(element('settingHelpEquation').hidden,false);assert.match(element('settingHelpEquation').textContent,/P_att =/);
  element('integrityColour').value='danger';element('legacyDanger').checked=true;element('legacyDanger').onchange();element('legacyDanger').listeners.get('change')();assert.match(element('fillLegend').textContent,/Legacy potential danger/);assert.match(element('settingHelpTitle').textContent,/legacy definition/);
  element('viewTiling').onclick();assert.equal(element('viewTiling')['aria-pressed'],'true');assert.equal(element('tilingSettings').hidden,false);assert.equal(element('showReceiving').checked,true);
  element('chanceFilter').value='goals';element('chanceFilter').onchange();assert.equal(element('chance').options.length,1+chances.filter(c=>c.outcome==='goal').length);
