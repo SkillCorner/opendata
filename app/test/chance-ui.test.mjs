@@ -57,11 +57,11 @@ for(const mobile of [false,true])test(`client chance playback and ${mobile?'mobi
  element('jumpShot').onclick();assert.equal(element('frame').textContent,goal.anchorFrame);assert.match(element('chanceStage').textContent,/0.0 s after/);
  element('colour').value='access';element('colour').onchange();assert.match(element('fillLegend').textContent,/Ball access/);
  element('mode').value='voronoi';element('mode').onchange();assert.match(element('fillLegend').textContent,/Ball access/);
- element('viewMode').value='integrity';element('viewMode').onchange();
+ element('viewIntegrity').onclick();assert.equal(element('viewIntegrity')['aria-pressed'],'true');
  assert.equal(element('integritySettings').hidden,false);assert.equal(element('tilingSettings').hidden,true);assert.equal(element('showReceiving').checked,false);
  element('scrub').value=100;element('scrub').oninput();
  for(const kind of ['control','danger','pass','tiles']){element('integrityColour').value=kind;element('integrityColour').onchange();assert.match(element('inspect').textContent,/Integrity \(value-weighted protection\)/);}
  element('integrityColour').value='danger';element('legacyDanger').checked=true;element('legacyDanger').onchange();assert.match(element('fillLegend').textContent,/Legacy potential danger/);
- element('viewMode').value='tiling';element('viewMode').onchange();assert.equal(element('tilingSettings').hidden,false);assert.equal(element('showReceiving').checked,true);
+ element('viewTiling').onclick();assert.equal(element('viewTiling')['aria-pressed'],'true');assert.equal(element('tilingSettings').hidden,false);assert.equal(element('showReceiving').checked,true);
  element('chanceFilter').value='goals';element('chanceFilter').onchange();assert.equal(element('chance').options.length,1+chances.filter(c=>c.outcome==='goal').length);
 });

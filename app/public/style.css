@@ -102,7 +102,12 @@ body.pitch-focus{overflow:hidden}
 #meshControls>summary{padding:16px;min-height:44px}
 #meshControls>.control-body{padding:0 16px 16px}
 
-.view-switch{display:flex;align-items:center;gap:10px;margin:0;font-size:11px;color:#9ab2ba}.view-switch select{width:auto;margin:0;padding:7px 10px;font-size:13px;min-height:36px}
+.view-switch{display:flex;align-items:center;gap:10px;margin:0 0 0 auto;font-size:11px;color:#9ab2ba}
+.view-toggle{display:flex;gap:3px;padding:4px;border:1px solid #3d535c;border-radius:9px;background:#142128}
+.view-toggle button{width:auto;margin:0;padding:9px 13px;min-height:36px;background:transparent;color:#afc4ca;font-size:12px;white-space:nowrap;border-radius:6px}
+.view-toggle button[aria-pressed="true"]{background:#a6ead0;color:#0d2523;box-shadow:0 1px 4px #0004}
+.view-toggle button:hover{color:#fff;background:#28413e}.view-toggle button[aria-pressed="true"]:hover{background:#b9f2dd;color:#0d2523}
+@media(max-width:600px){header{flex-wrap:wrap;gap:10px}.view-switch{margin-left:auto}.view-toggle button{padding:8px 10px;font-size:11px}}
 .pass-advice:empty{display:none}.pass-advice{margin:8px 0;padding:8px 12px;background:#182e32;color:#d9eae5;font-size:11px;line-height:1.5;border:1px dashed #7faaa0;border-radius:6px;flex-shrink:0}
 .pitch-focus #dangerPanel{max-height:25dvh;overflow:auto}
 

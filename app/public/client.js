@@ -7,7 +7,7 @@ import {buildDanger,dangerColour,teamScaleColour} from './danger.js';
 import {vertices,area,inside} from './geometry.js';
 const $=id=>document.getElementById(id),canvas=$('pitch'),ctx=canvas.getContext('2d');
 let frames=[],meta,phases=[],index=0,playing=false,last=0,triangles=[],selected=null,transform,request=0;
-let chances=[],loadedChance=null,passingData=null;
+let chances=[],loadedChance=null,passingData=null,currentView='tiling';
 const passPlayback=new PassPlayback();let passSnapshot=null;
 let integrityCacheFrame=null,integrityCacheData=null,integrityModel=null,integrityGrid=null,integrityDiagnostics=null;
 const integrityCanvas=document.createElement('canvas'),integrityCtx=integrityCanvas.getContext('2d');
@@ -135,7 +135,7 @@ function drawSoccerBall(x,y,tint,detected){
  ctx.restore();
 }
 function draw(){if(!meta||!frames.length)return;const rect=canvas.getBoundingClientRect(),dpr=Math.min(devicePixelRatio||1,2);const pixelWidth=Math.round(rect.width*dpr),pixelHeight=Math.round(rect.height*dpr);if(canvas.width!==pixelWidth)canvas.width=pixelWidth;if(canvas.height!==pixelHeight)canvas.height=pixelHeight;ctx.setTransform(dpr,0,0,dpr,0,0);const w=rect.width,h=rect.height,L=meta.pitch_length,W=meta.pitch_width,scale=Math.min((w-48)/L,(h-40)/W);transform={scale,ox:w/2,oy:h/2};const px=(x,y)=>[w/2+x*scale,h/2-y*scale];
- ctx.fillStyle='#102b29';ctx.fillRect(0,0,w,h);const f=frames[index],isIntegrity=$('viewMode').value==='integrity',points=vertices(f,meta,{team:$('team').value,ball:$('ball').checked,detectedOnly:$('detected').checked});
+ ctx.fillStyle='#102b29';ctx.fillRect(0,0,w,h);const f=frames[index],isIntegrity=currentView==='integrity',points=vertices(f,meta,{team:$('team').value,ball:$('ball').checked,detectedOnly:$('detected').checked});
  const source=possessionSource(frames,index),calculationIndex=source.index??index;
  const calculationFrame=frames[calculationIndex];
  let danger=buildDanger(calculationFrame,frames[calculationIndex-1],meta);
@@ -216,7 +216,7 @@ function positionTilePopup(t){
  popup.style.setProperty('--anchor-x',`${Math.max(16,Math.min(size.width-16,x-left))}px`);
 }
 function selectTriangle(clientX,clientY){
- if(!transform||$('viewMode').value==='integrity'||$('mode').value!=='triangles')return;
+ if(!transform||currentView==='integrity'||$('mode').value!=='triangles')return;
  const r=canvas.getBoundingClientRect(),p={x:(clientX-r.left-transform.ox)/transform.scale,y:-(clientY-r.top-transform.oy)/transform.scale};
  if(Math.abs(p.x)>meta.pitch_length/2||Math.abs(p.y)>meta.pitch_width/2)return;
  const hit=triangles.find(t=>inside(p,...t.vs));if(!hit)return;
@@ -290,14 +290,19 @@ function tick(now){
 }
 requestAnimationFrame(tick);window.addEventListener('resize',draw);
 let tilingHalos=true,integrityHalos=false;
-$('viewMode').onchange=()=>{
- const enabled=$('viewMode').value==='integrity';
+function setViewMode(value){
+ if(currentView===value)return;
+ currentView=value;
+ const enabled=currentView==='integrity';
+ $('viewTiling').setAttribute('aria-pressed',String(!enabled));$('viewIntegrity').setAttribute('aria-pressed',String(enabled));
  if(enabled){tilingHalos=$('showReceiving').checked;$('showReceiving').checked=integrityHalos;}else{integrityHalos=$('showReceiving').checked;$('showReceiving').checked=tilingHalos;}
  document.body.classList.toggle('integrity-view',enabled);
  $('tilingSettings').hidden=enabled;$('integritySettings').hidden=!enabled;selected=null;
  $('inspectorTitle').textContent=enabled?'Defensive integrity diagnostics':'Tile inspector';
  draw();
 };
+$('viewTiling').onclick=()=>setViewMode('tiling');
+$('viewIntegrity').onclick=()=>setViewMode('integrity');
 for(const id of ['integrityColour','legacyDanger','integrityTiles','integrityConnections','integrityMarking','integrityFacing'])$(id).onchange=()=>{$('legacySetting').hidden=$('integrityColour').value!=='danger';draw();};
 async function startup(){
  let expected=++request;
