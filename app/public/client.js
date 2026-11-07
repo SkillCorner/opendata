@@ -98,6 +98,7 @@ function positionReceivingLegend(){
 $('receivingLegend').addEventListener('toggle',e=>{if(e.newState==='open')positionReceivingLegend();});
 window.addEventListener('resize',()=>{if($('receivingLegend').matches(':popover-open'))positionReceivingLegend();});
 let activeSettingHelp=null,helpPinned=false,helpCloseTimer;
+const helpButton=id=>$(id==='viewIntegrity'?'viewIntegrity':'help-'+id);
 function updateSettingHelp(){
  if(!activeSettingHelp)return;
  const info=settingHelp(activeSettingHelp,$(activeSettingHelp).value,$('legacyDanger').checked);
@@ -106,33 +107,33 @@ function updateSettingHelp(){
 }
 function positionSettingHelp(){
  if(!activeSettingHelp)return;
- const button=$('help-'+activeSettingHelp).getBoundingClientRect(),tip=$('settingTooltip'),box=tip.getBoundingClientRect();
+ const button=helpButton(activeSettingHelp).getBoundingClientRect(),tip=$('settingTooltip'),box=tip.getBoundingClientRect();
  let left=button.left-box.width-8;
  if(left<8)left=Math.max(button.right,$(activeSettingHelp).getBoundingClientRect().right)+8;
  left=Math.max(8,Math.min(left,(document.documentElement?.clientWidth??window.innerWidth)-box.width-8));
  const top=Math.max(8,Math.min(button.top,(document.documentElement?.clientHeight??window.innerHeight)-box.height-8));
  tip.style.left=`${left}px`;tip.style.top=`${top}px`;
 }
-function closeSettingHelp(){if(activeSettingHelp)$('help-'+activeSettingHelp).setAttribute('aria-expanded','false');const tip=$('settingTooltip');if(tip.matches(':popover-open'))tip.hidePopover();activeSettingHelp=null;helpPinned=false;}
+function closeSettingHelp(){if(activeSettingHelp)helpButton(activeSettingHelp).setAttribute('aria-expanded','false');const tip=$('settingTooltip');if(tip.matches(':popover-open'))tip.hidePopover();activeSettingHelp=null;helpPinned=false;}
 function openSettingHelp(id,pinned=false){
- clearTimeout(helpCloseTimer);if(activeSettingHelp&&activeSettingHelp!==id)$('help-'+activeSettingHelp).setAttribute('aria-expanded','false');activeSettingHelp=id;$('help-'+id).setAttribute('aria-expanded','true');helpPinned=pinned;updateSettingHelp();
+ clearTimeout(helpCloseTimer);if(activeSettingHelp&&activeSettingHelp!==id)helpButton(activeSettingHelp).setAttribute('aria-expanded','false');activeSettingHelp=id;helpButton(id).setAttribute('aria-expanded','true');helpPinned=pinned;updateSettingHelp();
  const tip=$('settingTooltip');if(!tip.matches(':popover-open'))tip.showPopover();positionSettingHelp();
 }
 function scheduleHelpClose(){
  if(helpPinned)return;
- helpCloseTimer=setTimeout(()=>{const tip=$('settingTooltip'),button=activeSettingHelp&&$('help-'+activeSettingHelp);if(!tip.matches(':hover')&&document.activeElement!==button)closeSettingHelp();},180);
+ helpCloseTimer=setTimeout(()=>{const tip=$('settingTooltip'),button=activeSettingHelp&&helpButton(activeSettingHelp);if(!tip.matches(':hover')&&document.activeElement!==button)closeSettingHelp();},180);
 }
 for(const id of Object.keys(SETTING_HELP)){
- const button=$('help-'+id);
- button.setAttribute('aria-label','About '+SETTING_HELP[id].title);button.title='Explain '+SETTING_HELP[id].title;
- button.onclick=event=>{event?.preventDefault?.();if(helpPinned&&activeSettingHelp===id){closeSettingHelp();}else openSettingHelp(id,true);};
- button.onpointerenter=event=>{if(event.pointerType==='mouse'&&!helpPinned)openSettingHelp(id);};
- button.onpointerleave=scheduleHelpClose;button.onfocus=()=>{if(!helpPinned)openSettingHelp(id);};button.onblur=scheduleHelpClose;
+ const button=helpButton(id);
+ if(id!=='viewIntegrity'){button.setAttribute('aria-label','About '+SETTING_HELP[id].title);button.title='Explain '+SETTING_HELP[id].title;}
+ if(id!=='viewIntegrity')button.onclick=event=>{event?.preventDefault?.();if(helpPinned&&activeSettingHelp===id){closeSettingHelp();}else openSettingHelp(id,true);};
+ button.onpointerenter=event=>{if(event.pointerType==='mouse'&&!helpPinned&&(id!=='viewIntegrity'||currentView==='integrity'))openSettingHelp(id);};
+ button.onpointerleave=scheduleHelpClose;button.onfocus=()=>{if(!helpPinned&&(id!=='viewIntegrity'||currentView==='integrity'))openSettingHelp(id);};button.onblur=scheduleHelpClose;
  $(id).addEventListener('change',()=>{updateSettingHelp();if(activeSettingHelp)positionSettingHelp();});
 }
 $('settingTooltip').onpointerenter=()=>clearTimeout(helpCloseTimer);
 $('settingTooltip').onpointerleave=scheduleHelpClose;
-$('settingTooltip').addEventListener('toggle',e=>{if(e.newState==='closed'){if(activeSettingHelp)$('help-'+activeSettingHelp).setAttribute('aria-expanded','false');activeSettingHelp=null;helpPinned=false;}});
+$('settingTooltip').addEventListener('toggle',e=>{if(e.newState==='closed'){if(activeSettingHelp)helpButton(activeSettingHelp).setAttribute('aria-expanded','false');activeSettingHelp=null;helpPinned=false;}});
 window.addEventListener('resize',()=>{if(activeSettingHelp)positionSettingHelp();});
 window.addEventListener('scroll',()=>{if(activeSettingHelp)positionSettingHelp();},true);
 $('meshControls').open=false;
@@ -335,6 +336,7 @@ function setViewMode(value){
  closeSettingHelp();currentView=value;
  const enabled=currentView==='integrity';
  $('viewTiling').setAttribute('aria-pressed',String(!enabled));$('viewIntegrity').setAttribute('aria-pressed',String(enabled));
+ $('viewIntegrity').setAttribute('aria-describedby',enabled?'settingTooltip':'');
  if(enabled){tilingHalos=$('showReceiving').checked;$('showReceiving').checked=integrityHalos;}else{integrityHalos=$('showReceiving').checked;$('showReceiving').checked=tilingHalos;}
  document.body.classList.toggle('integrity-view',enabled);
  $('tilingSettings').hidden=enabled;$('integritySettings').hidden=!enabled;selected=null;
@@ -342,7 +344,7 @@ function setViewMode(value){
  draw();
 };
 $('viewTiling').onclick=()=>setViewMode('tiling');
-$('viewIntegrity').onclick=()=>setViewMode('integrity');
+$('viewIntegrity').onclick=()=>{setViewMode('integrity');if(helpPinned&&activeSettingHelp==='viewIntegrity')closeSettingHelp();else openSettingHelp('viewIntegrity',true);};
 for(const id of ['integrityColour','legacyDanger','integrityTiles','integrityConnections','integrityMarking','integrityFacing'])$(id).onchange=()=>{$('legacySetting').hidden=$('integrityColour').value!=='danger';draw();};
 async function startup(){
  let expected=++request;
@@ -364,4 +366,5 @@ async function startup(){
   else $('startupLoading').textContent='Unable to load tracking. Please try Return to bundled demo.';
  }
 }
+setViewMode('integrity');
 await startup();

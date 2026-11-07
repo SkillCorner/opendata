@@ -23,6 +23,11 @@ for(const mobile of [false,true])test(`client chance playback and ${mobile?'mobi
  vm.runInNewContext(await readFile(new URL('../public/d3-delaunay.min.js',import.meta.url),'utf8'),sandbox);
  const client=(await readFile(new URL('../public/client.js',import.meta.url),'utf8')).replace(/^import .*;\r?\n/gm,'');
  await vm.runInNewContext(`(async()=>{${client}\n})()`,sandbox);
+ assert.equal(element('viewIntegrity')['aria-pressed'],'true','Defensive Integrity starts selected');
+ assert.equal(element('integritySettings').hidden,false);assert.equal(element('showReceiving').checked,false);
+ element('viewIntegrity').onpointerenter({pointerType:'mouse'});assert.match(element('settingHelpText').textContent,/Fitted notebook model/);
+ element('viewTiling').onclick();assert.equal(element('settingTooltip').popOpen,false);
+ element('viewIntegrity').onpointerenter({pointerType:'mouse'});assert.equal(element('settingTooltip').popOpen,false,'no right-toggle tooltip while unselected');
  assert.equal(element('chance').value,chances.find(c=>c.highDanger).id);
  assert.equal(requests.filter(r=>r.includes('/clip?')).length,1);
  assert.equal(requests.includes('/demo.json'),false,'default startup must not fetch or render the old demo');
