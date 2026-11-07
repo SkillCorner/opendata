@@ -12,7 +12,8 @@ for(const mobile of [false,true])test(`client chance playback and ${mobile?'mobi
  const catalogue=JSON.parse(await readFile(new URL('../chance-catalogue.json',import.meta.url),'utf8'));
  const chances=catalogue.matches['1886347'];
  const requests=[],els=new Map(),classes=new Set(),events=new Map();
- const context2d=new Proxy({},{get:()=>()=>{}});
+ const paint=[];
+ const context2d=new Proxy({},{get:(_,name)=>(...args)=>paint.push({name,args})});
  const element=id=>{if(!els.has(id)){const e={id,style:{setProperty(){}},listeners:new Map(),classList:{toggle(){}},value:({mode:'triangles',team:'all',colour:'danger',duration:'30',speed:'1',chanceFilter:'high',start:'10'})[id]??'',checked:['ball','showReceiving'].includes(id),options:[],textContent:'',hidden:false,disabled:false,addEventListener(k,fn){this.listeners.set(k,fn);},getBoundingClientRect(){return mobile?{width:390,height:260,left:0,top:0}:{width:1000,height:625,left:0,top:0};},getContext(){return context2d;},scrollIntoView(){this.scrolled=true;},show(){this.open=true;},showModal(){this.open=true;},close(){this.open=false;},setAttribute(k,v){this[k]=v;},add(o){this.options.push(o);},replaceChildren(...options){this.options=options;this.value=options[0]?.value??'';}};Object.defineProperty(e,'selectedOptions',{get:()=>e.options.filter(o=>o.value===e.value)});els.set(id,e);}return els.get(id);};
  const sandbox={...geometry,...danger,...access,...possession,...passing,ImageData:class {constructor(data,width,height){Object.assign(this,{data,width,height});}},devicePixelRatio:3,performance:{now:()=>0},requestAnimationFrame(){},window:{matchMedia:()=>({matches:mobile}),addEventListener(k,fn){events.set(k,fn);}},document:{createElement:()=>element('offscreen'),addEventListener(){},getElementById:element,body:{classList:{contains:k=>classes.has(k),add:k=>classes.add(k),remove:k=>classes.delete(k)}}},Option:class{constructor(text,value){this.textContent=text;this.value=value;}},fetch:async url=>{
  requests.push(url);let data;if(url==='/demo.json')data=demo;else if(url==='/api/matches')data=[{id:1886347,label:'Test match'}];else if(url.endsWith('/passing'))data={settings:JSON.parse(await readFile(new URL('../../notebooks/fitted/pitch_control_settings.json',import.meta.url),'utf8')).settings,physical:Object.fromEntries(demo.metadata.players.map(p=>[p.id,{vmax:8,amax:5}])),runs:[]};else if(url.endsWith('/metadata'))data=demo.metadata;else if(url.endsWith('/phases'))data=[];else if(url.endsWith('/chances'))data={chances};else if(url.includes('/clip?')){const u=new URL(url,'http://test'),start=Number(u.searchParams.get('start'));data=demo.frames.slice(0,281).map((f,i)=>({...f,frame:start+i,period:2}));}else throw Error(url);return {ok:true,json:async()=>data};}};
@@ -22,6 +23,12 @@ for(const mobile of [false,true])test(`client chance playback and ${mobile?'mobi
  assert.equal(element('chance').value,chances.find(c=>c.highDanger).id);
  assert.equal(requests.filter(r=>r.includes('/clip?')).length,1);
  assert.equal(requests.includes('/demo.json'),false,'default startup must not fetch or render the old demo');
+ element('scrub').value=demo.frames.findIndex(f=>f.possession?.player_id!=null);element('scrub').oninput();
+ const overlayPaint=paint.findLastIndex(c=>c.name==='drawImage');
+ assert.ok(overlayPaint>=0,'receiving surface is drawn by default');
+ assert.ok(paint.slice(0,overlayPaint).some(c=>c.name==='stroke'),'tiles are drawn before halos');
+ assert.ok(paint.slice(overlayPaint+1).some(c=>c.name==='arc'),'player markers are drawn above halos');
+ element('scrub').value=0;element('scrub').oninput();
  assert.equal(element('startupLoading').hidden,true);
  assert.equal(element('jumpShot').hidden,false);
  assert.equal(element('meshControls').open,!mobile);assert.equal(element('chancePanel').hidden,false);assert.equal(element('clipDetails').hidden,true);

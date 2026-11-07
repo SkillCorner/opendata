@@ -85,12 +85,22 @@ function draw(){if(!meta||!frames.length)return;const rect=canvas.getBoundingCli
  else{for(let i=0;i<delaunay.triangles.length;i+=3){const vs=Array.from(delaunay.triangles.slice(i,i+3),j=>points[j]);const a=area(...vs);if(a<1e-6)continue;const key=vs.flatMap(v=>v.members.map(p=>p.id)).sort().join(':');const ball=vs.some(v=>v.members.some(p=>p.id==='ball')),estimated=vs.some(v=>!v.is_detected);const scoreVertices=vs.map(scoringSite);const centroid={x:scoreVertices.reduce((s,p)=>s+p.x,0)/3,y:scoreVertices.reduce((s,p)=>s+p.y,0)/3};const potential=danger.potential(centroid),entry=access.triangle(scoreVertices);triangles.push({vs,area:a,key,ball,estimated,potential,entry});poly(vs);const teams=new Set(vs.flatMap(v=>v.members.filter(p=>p.id!=='ball').map(p=>p.team)));const colour=$('colour').value==='access'?accessColour(entry.score):$('colour').value==='danger'?dangerColour(potential):$('colour').value==='area'?`hsl(${170-Math.min(a/350,1)*130} 62% 60%)`:teams.size===1?teamColour([...teams][0]):'#baabc9';ctx.fillStyle=colour;ctx.globalAlpha=$('ballOnly').checked&&!ball?.035:(['danger','access'].includes($('colour').value)?.72:.2);ctx.fill();ctx.strokeStyle=selected===key?'#ffffff':colour;ctx.globalAlpha=$('ballOnly').checked&&!ball?.08:.65;ctx.lineWidth=selected===key?3:1.5;ctx.setLineDash(estimated&&$('showEstimates').checked?[4,4]:[]);ctx.stroke();
  // Team edges are drawn independently of the tile fill/score.
  for(let e=0;e<3;e++){const p=vs[e],q=vs[(e+1)%3];const pt=new Set(p.members.filter(m=>m.id!=='ball').map(m=>m.team)),qt=new Set(q.members.filter(m=>m.id!=='ball').map(m=>m.team));const same=pt.size===1&&qt.size===1&&[...pt][0]=== [...qt][0];ctx.beginPath();ctx.moveTo(...px(p.x,p.y));ctx.lineTo(...px(q.x,q.y));ctx.globalAlpha=.95;ctx.strokeStyle=same?teamColour([...pt][0]):'#f4d292';ctx.lineWidth=same?2.5:1.8;ctx.setLineDash(same?[]:[5,3]);ctx.stroke();}ctx.setLineDash([]);}}
- if($('showReceiving').checked){receivingOverlay(f);if(!haloModel.reason){ctx.globalAlpha=1;ctx.imageSmoothingEnabled=false;ctx.drawImage(haloCanvas,...px(-L/2,W/2),L*scale,W*scale);}}
  $('receivingLegend').hidden=!$('showReceiving').checked;
  $('receivingStatus').textContent=haloModel?.reason??'Pale: slim chance · bright green: high chance · below 1% hidden';
  const chosen=triangles.find(t=>t.key===selected);
  if(chosen){poly(chosen.vs);ctx.globalAlpha=1;ctx.setLineDash([]);ctx.strokeStyle='#071219';ctx.lineWidth=6;ctx.stroke();ctx.strokeStyle='#ffffff';ctx.lineWidth=3;ctx.stroke();}
- ctx.restore();ctx.globalAlpha=1;ctx.setLineDash([]);ctx.strokeStyle='#6c9690';ctx.lineWidth=1;ctx.strokeRect(...px(-L/2,W/2),L*scale,W*scale);ctx.beginPath();ctx.moveTo(...px(0,-W/2));ctx.lineTo(...px(0,W/2));ctx.stroke();ctx.beginPath();ctx.arc(...px(0,0),9.15*scale,0,Math.PI*2);ctx.stroke();for(const side of [-1,1]){const x=side<0?-L/2:L/2-16.5;ctx.strokeRect(...px(x,20.16),16.5*scale,40.32*scale);const gx=side<0?-L/2:L/2-5.5;ctx.strokeRect(...px(gx,9.16),5.5*scale,18.32*scale);}
+ ctx.restore();
+ // Independent foreground pass: above all tile fills, edges and selection outlines.
+ // Reset compositing/opacity so mesh settings cannot hide the receiving surface.
+ if($('showReceiving').checked){
+  receivingOverlay(f);
+  if(!haloModel.reason){
+   ctx.save();ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.imageSmoothingEnabled=false;
+   ctx.beginPath();ctx.rect(...px(-L/2,W/2),L*scale,W*scale);ctx.clip();
+   ctx.drawImage(haloCanvas,...px(-L/2,W/2),L*scale,W*scale);ctx.restore();
+  }
+ }
+ ctx.globalAlpha=1;ctx.setLineDash([]);ctx.strokeStyle='#6c9690';ctx.lineWidth=1;ctx.strokeRect(...px(-L/2,W/2),L*scale,W*scale);ctx.beginPath();ctx.moveTo(...px(0,-W/2));ctx.lineTo(...px(0,W/2));ctx.stroke();ctx.beginPath();ctx.arc(...px(0,0),9.15*scale,0,Math.PI*2);ctx.stroke();for(const side of [-1,1]){const x=side<0?-L/2:L/2-16.5;ctx.strokeRect(...px(x,20.16),16.5*scale,40.32*scale);const gx=side<0?-L/2:L/2-5.5;ctx.strokeRect(...px(gx,9.16),5.5*scale,18.32*scale);}
  vertices(f,meta,{team:$('team').value,ball:true,detectedOnly:$('detected').checked}).forEach(p=>{const ball=p.members.some(v=>v.id==='ball');if(ball){drawSoccerBall(...px(p.x,p.y),dangerColour(danger.current),p.is_detected);return;}ctx.beginPath();ctx.arc(...px(p.x,p.y),Math.max(6,scale*1.2),0,Math.PI*2);ctx.fillStyle=teamColour(p.team);ctx.fill();const showEstimate=!p.is_detected&&$('showEstimates').checked;ctx.strokeStyle=showEstimate?'#ffcc81':'#102321';ctx.setLineDash(showEstimate?[2,2]:[]);ctx.lineWidth=2;ctx.stroke();ctx.setLineDash([]);if(!ball){ctx.fillStyle='#ffffff';ctx.font='bold 9px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(p.number??'?',...px(p.x,p.y));}});
  $('estimateLegend').hidden=!$('showEstimates').checked;
  $('jumpShot').hidden=!loadedChance;
