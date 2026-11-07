@@ -91,5 +91,5 @@ export function buildPassing(frame,before,after,meta,data){
   }
   return {width,height,values,outlines:masks.map(mask=>haloBoundary(mask,width,height))};
  }
- return {reason:null,receivers,at,grid,projected,carrierId};
+ return {reason:null,receivers,at,grid,projected,carrierId,players,defenders,arrival,team,ball};
 }

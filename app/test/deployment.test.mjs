@@ -19,7 +19,7 @@ test('Docker image packages the resources needed by the receiving model',async()
   }
   const meta=JSON.parse(await readFile(path.join(image,'data/matches/1886347/1886347_match.json'),'utf8'));
   const model=await passingData(image,1886347,meta);
-  assert.ok(model.settings.RUN_CREDIT>0);assert.ok(model.runs.length);
+  assert.ok(model.settings.RUN_CREDIT>0);assert.ok(model.valueModel.V_loc.length);assert.ok(model.runs.length);
   assert.ok(Object.values(model.physical).every(p=>p.vmax>0&&p.amax>0));
  }finally{await rm(image,{recursive:true,force:true});}
 });

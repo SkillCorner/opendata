@@ -1,0 +1,60 @@
+# Defensive Integrity view
+
+The header switches between the original Pitch Tiling viewer and Defensive
+Integrity. Both use the same clips and playback controls. Integrity defaults to
+pitch control, players and ball, with tiles, links, facing and halos off. Mesh
+settings offers four maps plus optional defender links, tiles, marking assignments
+and facing indicators. The diagnostic panel reports current protection, threat,
+assignment and nearest-attacker marking, free attacker, orientation, legacy tile
+integrity, broken links and stretched tiles.
+
+The equations and saved fits come from `defensive_shape_integrity.ipynb` on main:
+
+- Pitch control: the fitted arrival-time race, including reaction, turning,
+  individual acceleration and top speed, and the ball-time tie break.
+- Potential danger: `P_success * V_context - (1-P_success) * V_opponent - V_ball`.
+  The Legacy definition switch uses the original viewer's spatial EPV proxy and
+  original colour scale instead.
+- Pass value: the best receiver-specific net EPV gain at each cell, including the
+  additional on-time arrival gate used by the receiving halos. This is an extension
+  of the notebook, not a separately calibrated probability. The raster evaluates
+  current movement and active off-ball runs, the fitted run credit, ball flight,
+  interception at eight checkpoints, and ground/lofted alternatives.
+- Defensive Tiling: outfield defenders only; tile strength is mean defensive
+  control, links use weakest defensive control, and links over 30 m are omitted.
+  Stretched triangles are marked separately. Current integrity is the notebook's
+  location-value-weighted protection beyond `ball_x - 5 m`, not the old tile score.
+
+Maps use a one-metre grid covering the actual pitch. The fitted location-value
+table retains the notebook's standard-pitch coordinates and nearest-cell lookup.
+Point evaluations use exact interception checkpoint positions (as `value_points`
+does), rather than the grid-snapped checkpoints used by the notebook's raster.
+Facing remains inferred from motion or the ball, rather than measured body pose.
+Short possession gaps use the existing 30-frame team-possession grace period;
+player positions, ball positions and all model values continue to update.
+
+## Pass recommendations
+
+Both views pause at each recorded pass release for one real second, independent
+of playback speed. Options are computed once at release with the notebook's
+projected-receiver `value_points` calculation and fitted context value, ranked by
+net EPV gain. One option per receiver, with destinations at least two metres apart,
+prevents duplicate recommendations. At most five recorded options are shown; fewer
+are shown if fewer distinct options exist. Only when annotations are absent do
+tracked off-ball teammates provide fallback options, explicitly labelled in the UI.
+
+Dashed arrows stay frozen through the next possession start, including interception
+or unsuccessful passes. Playback clamps to that completion frame before removing
+the overlay, even at high speed or across skipped render frames. A white casing
+keeps arrows visible; the inner dashed line is darker for higher-value passes.
+Numbers and net EPV gains accompany the arrows. Negative gains remain labelled as
+negative, even for the best available pass. Scrubbing clears the overlay and seeks
+the event controller; replay resets the one-time pause history.
+
+## Validation
+
+Tests cover an independent scalar Python reference for the notebook equations,
+stadium-direction symmetry, one-to-one optimal marking, distinct receiver ranking,
+pause duration, completion-frame retention, seeking/replay, both viewer modes,
+all map choices, legacy danger, server resources and Docker packaging. The stored
+reference is a formula check, not a rerun of the notebook's fitting or validation.

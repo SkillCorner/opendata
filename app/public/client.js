@@ -1,3 +1,5 @@
+import {buildIntegrity,integrityColour} from './integrity.js';
+import {PassPlayback} from './pass-playback.js';
 import {buildPassing,haloColour} from './passing.js';
 import {buildAccess,accessColour} from './access.js';
 import {possessionSource,POSSESSION_HOLD_FRAMES} from './possession.js';
@@ -6,6 +8,72 @@ import {vertices,area,inside} from './geometry.js';
 const $=id=>document.getElementById(id),canvas=$('pitch'),ctx=canvas.getContext('2d');
 let frames=[],meta,phases=[],index=0,playing=false,last=0,triangles=[],selected=null,transform,request=0;
 let chances=[],loadedChance=null,passingData=null;
+const passPlayback=new PassPlayback();let passSnapshot=null;
+let integrityCacheFrame=null,integrityCacheData=null,integrityModel=null,integrityGrid=null,integrityDiagnostics=null;
+const integrityCanvas=document.createElement('canvas'),integrityCtx=integrityCanvas.getContext('2d');
+let integrityPaintKey='';
+function notebookModel(f,i=index,forceTeam=null){
+ const event=forceTeam;
+ const held=possessionSource(frames,i);
+ const possession=held.index!=null?frames[held.index].possession:f.possession;
+ const adjusted=event?{...f,possession:{player_id:event.carrier,group:event.team===meta.home_team.id?'home team':'away team'}}:{...f,possession};
+ return buildIntegrity(adjusted,frames[i-2],frames[i+2],meta,passingData);
+}
+function currentIntegrity(f){
+ if(integrityCacheFrame!==f||integrityCacheData!==passingData){integrityCacheFrame=f;integrityCacheData=passingData;integrityModel=notebookModel(f);integrityGrid=null;integrityDiagnostics=null;integrityPaintKey='';}
+ return integrityModel;
+}
+function resetPassAdvice(){passPlayback.reset();passSnapshot=null;}
+function passRecommendation(event){
+ if(!event){passSnapshot=null;return null;}
+ if(passSnapshot?.id===event.id)return passSnapshot;
+ const i=frames.findIndex(f=>f.period===event.period&&f.frame>=event.release);
+ if(i<0)return null;
+ const model=notebookModel(frames[i],i,event);
+ if(model.reason)return null;
+ passSnapshot={id:event.id,ball:model.ball,...model.recommendations(event)};return passSnapshot;
+}
+function drawPassAdvice(px){
+ const recommendation=passRecommendation(passPlayback.active);
+ if(!recommendation?.options.length){$('passAdvice').textContent='';return;}
+ const opts=recommendation.options,maximum=Math.max(...opts.map(o=>o.gain)),minimum=Math.min(...opts.map(o=>o.gain));
+ ctx.save();
+ for(let i=opts.length-1;i>=0;i--){const o=opts[i],t=maximum===minimum?1:(o.gain-minimum)/(maximum-minimum),[x,y]=px(o.x,o.y),[bx,by]=px(recommendation.ball.x,recommendation.ball.y);
+  ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(x,y);ctx.setLineDash([8,6]);ctx.strokeStyle='#ffffff';ctx.lineWidth=5;ctx.stroke();
+  const shade=Math.round(165*(1-t));ctx.strokeStyle=`rgb(${shade},${shade},${shade})`;ctx.lineWidth=3;ctx.stroke();ctx.setLineDash([]);
+  const angle=Math.atan2(y-by,x-bx);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-10*Math.cos(angle-.45),y-10*Math.sin(angle-.45));ctx.moveTo(x,y);ctx.lineTo(x-10*Math.cos(angle+.45),y-10*Math.sin(angle+.45));ctx.stroke();
+  ctx.beginPath();ctx.arc(x,y,9,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle='#142128';ctx.lineWidth=1;ctx.stroke();ctx.fillStyle='#08191d';ctx.font='bold 11px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(String(i+1),x,y);
+ }
+ ctx.restore();
+ $('passAdvice').textContent=`${performance.now()<passPlayback.until?'Pass preview · 1 s pause':'Pass in flight'} · darker = higher net EPV gain · ${opts.map((o,i)=>`${i+1}. ${o.name} ${o.gain>=0?'+':''}${o.gain.toFixed(3)}`).join(' · ')}${opts.length<5?` · ${opts.length} distinct available options`:''} · ${recommendation.source}`;
+}
+function renderIntegrity(f,px,L,W,scale,poly){
+ const model=currentIntegrity(f),kind=$('integrityColour').value;
+ if(model.reason){$('inspect').textContent=model.reason;return;}
+ $('danger').textContent=model.ballValue.toFixed(3);$('dangerQuality').textContent='Fitted notebook EPV at the ball · 15 training matches / 5 held out';
+ const g=integrityGrid??=model.grid();
+ const diagnostic=integrityDiagnostics??=model.diagnostics(d=>d3.Delaunay.from(d,p=>p.x,p=>p.y));
+ const key=kind+':'+$('legacyDanger').checked;
+ if(key!==integrityPaintKey){
+  const legacy=kind==='danger'&&$('legacyDanger').checked?buildDanger(f,frames[index-1],meta):null;
+  const pixels=new Uint8ClampedArray(g.width*g.height*4);
+  g.cells.forEach((c,i)=>{const value=kind==='control'?c.control:kind==='pass'?c.passValue:legacy?legacy.potential(c):c.gain;pixels.set(kind==='tiles'?[0,0,0,0]:legacy?[...dangerColour(value).match(/\d+/g).map(Number),185]:integrityColour(value,kind==='control'?'control':'gain'),i*4);});
+  integrityCanvas.width=g.width;integrityCanvas.height=g.height;integrityCtx.putImageData(new ImageData(pixels,g.width,g.height),0,0);integrityPaintKey=key;
+ }
+ if(kind!=='tiles'){ctx.save();ctx.imageSmoothingEnabled=false;ctx.globalAlpha=1;ctx.drawImage(integrityCanvas,...px(-L/2,W/2),L*scale,W*scale);ctx.restore();}
+ if(kind==='tiles'||$('integrityTiles').checked)for(const tile of diagnostic.tiles){poly(tile.vs);ctx.fillStyle=tile.stretched?'rgba(180,180,180,.13)':`hsla(${120*(tile.strength??.5)},75%,48%,.5)`;ctx.fill();ctx.strokeStyle=tile.stretched?'#c8ced1':'#a6ead0';ctx.lineWidth=1;ctx.setLineDash(tile.stretched?[3,5]:[]);ctx.stroke();}
+ if(kind==='tiles'||$('integrityConnections').checked)for(const link of diagnostic.links){ctx.beginPath();ctx.moveTo(...px(link.a.x,link.a.y));ctx.lineTo(...px(link.b.x,link.b.y));ctx.strokeStyle=link.strength>=.5?'#49ef91':'#ff625c';ctx.lineWidth=2.5;ctx.setLineDash(link.strength>=.5?[]:[6,4]);ctx.stroke();}
+ if($('integrityMarking').checked)for(const mark of diagnostic.marks){
+  const [x,y]=px(mark.attacker.x,mark.attacker.y);ctx.beginPath();ctx.arc(x,y,10,0,Math.PI*2);ctx.strokeStyle=`hsl(${120*mark.covered},85%,60%)`;ctx.lineWidth=2;ctx.setLineDash([]);ctx.stroke();
+  if(mark.defender){ctx.beginPath();ctx.moveTo(...px(mark.defender.x,mark.defender.y));ctx.lineTo(x,y);ctx.setLineDash([2,5]);ctx.stroke();}
+ }
+ if($('integrityFacing').checked)for(const p of model.players){const norm=Math.hypot(p.fx,p.fy)||1;ctx.beginPath();ctx.moveTo(...px(p.x,p.y));ctx.lineTo(...px(p.x+p.fx/norm*2.5,p.y+p.fy/norm*2.5));ctx.strokeStyle='#ffe5a3';ctx.lineWidth=2;ctx.setLineDash([]);ctx.stroke();}
+ ctx.setLineDash([]);
+ const n=v=>v==null?'—':v.toFixed(3);
+ $('inspect').textContent=`Integrity (value-weighted protection): ${n(g.integrity)} · Threat available: ${n(g.threat)} · Assignment marking: ${n(diagnostic.marking)} · Nearest-attacker marking: ${n(diagnostic.nearestMarking)} · Most dangerous free attacker: ${diagnostic.free??'—'} · Orientation: ${n(diagnostic.orientation)} · Old tile integrity: ${n(diagnostic.oldIntegrity)} · Broken links: ${diagnostic.links.filter(l=>l.strength<.5).length}/${diagnostic.links.length} · Stretched tiles: ${diagnostic.tiles.filter(t=>t.stretched).length}`;
+ $('fillLegend').textContent=kind==='control'?'Pitch control: blue defence · neutral 50% · red attack':kind==='tiles'?'Defensive tiles / links: red weak · green strong':kind==='pass'?'Receiver-specific pass value: blue EPV loss · red EPV gain':$('legacyDanger').checked?'Legacy potential danger · original spatial EPV proxy':'Notebook potential danger · net EPV gain after interception and turnover risk';
+}
+
 const haloCanvas=document.createElement('canvas'),haloCtx=haloCanvas.getContext('2d');
 let haloCacheFrame=null,haloCacheData=null,haloModel=null,haloOutlines=[];
 function receivingOverlay(f){
@@ -49,7 +117,7 @@ function centerInitialMobileMesh(){
 }
 async function get(url){const r=await fetch(url);const data=await r.json();if(!r.ok)throw Error(data.error||'Request failed');return data;}
 function configure(m){meta=m;$('title').textContent=`${m.home_team.name} vs ${m.away_team.name}`;$('dimensions').textContent=`${m.pitch_length} × ${m.pitch_width} m`;$('team').replaceChildren(new Option('Both teams','all'),new Option(m.home_team.name,String(m.home_team.id)),new Option(m.away_team.name,String(m.away_team.id)));}
-function install(data){$('startupLoading').hidden=true;$('play').disabled=false;$('scrub').disabled=false;loadedChance=null;frames=data;index=0;playing=false;$('play').textContent='▶ Play';$('scrub').max=frames.length-1;selected=null;draw();}
+function install(data){resetPassAdvice();$('startupLoading').hidden=true;$('play').disabled=false;$('scrub').disabled=false;loadedChance=null;frames=data;index=0;playing=false;$('play').textContent='▶ Play';$('scrub').max=frames.length-1;selected=null;draw();}
 async function demo(){const token=++request;try{const d=await get('/demo.json');if(token!==request)return;configure(d.metadata);passingData=await get(`/api/matches/${d.metadata.id}/passing`).catch(()=>null);if(token!==request)return;install(d.frames);say('Demo ready. Select a match and phase to explore another clip.');}catch(e){say(e.message);}}
 function teamColour(team){return teamScaleColour(team,meta,frames[index]?.period);}
 function drawSoccerBall(x,y,tint,detected){
@@ -67,7 +135,7 @@ function drawSoccerBall(x,y,tint,detected){
  ctx.restore();
 }
 function draw(){if(!meta||!frames.length)return;const rect=canvas.getBoundingClientRect(),dpr=Math.min(devicePixelRatio||1,2);const pixelWidth=Math.round(rect.width*dpr),pixelHeight=Math.round(rect.height*dpr);if(canvas.width!==pixelWidth)canvas.width=pixelWidth;if(canvas.height!==pixelHeight)canvas.height=pixelHeight;ctx.setTransform(dpr,0,0,dpr,0,0);const w=rect.width,h=rect.height,L=meta.pitch_length,W=meta.pitch_width,scale=Math.min((w-48)/L,(h-40)/W);transform={scale,ox:w/2,oy:h/2};const px=(x,y)=>[w/2+x*scale,h/2-y*scale];
- ctx.fillStyle='#102b29';ctx.fillRect(0,0,w,h);const f=frames[index],points=vertices(f,meta,{team:$('team').value,ball:$('ball').checked,detectedOnly:$('detected').checked});
+ ctx.fillStyle='#102b29';ctx.fillRect(0,0,w,h);const f=frames[index],isIntegrity=$('viewMode').value==='integrity',points=vertices(f,meta,{team:$('team').value,ball:$('ball').checked,detectedOnly:$('detected').checked});
  const source=possessionSource(frames,index),calculationIndex=source.index??index;
  const calculationFrame=frames[calculationIndex];
  let danger=buildDanger(calculationFrame,frames[calculationIndex-1],meta);
@@ -87,10 +155,13 @@ function draw(){if(!meta||!frames.length)return;const rect=canvas.getBoundingCli
  $('fillLegend').textContent+=holdLabel;
  const delaunay=d3.Delaunay.from(points,p=>p.x,p=>p.y);triangles=[];ctx.save();ctx.beginPath();ctx.rect(...px(-L/2,W/2),L*scale,W*scale);ctx.clip();
  const poly=(arr)=>{ctx.beginPath();arr.forEach((p,i)=>{const q=px(p.x,p.y);i?ctx.lineTo(...q):ctx.moveTo(...q);});ctx.closePath();};
+ if(isIntegrity){renderIntegrity(f,px,L,W,scale,poly);}
+ else {
  if($('mode').value==='voronoi'&&points.length){const v=delaunay.voronoi([-L/2,-W/2,L/2,W/2]);points.forEach((p,i)=>{const polygon=v.cellPolygon(i);if(!polygon)return;poly(polygon.map(([x,y])=>({x,y})));ctx.fillStyle=$('colour').value==='access'?accessColour(access.at(scoringSite(p)).score):$('colour').value==='danger'?dangerColour(danger.potential(scoringSite(p))):teamColour(p.team);ctx.globalAlpha=['danger','access'].includes($('colour').value)?.72:.35;ctx.fill();ctx.globalAlpha=.6;ctx.strokeStyle=teamColour(p.team);ctx.setLineDash(p.is_detected?[]:[4,4]);ctx.stroke();});}
  else{for(let i=0;i<delaunay.triangles.length;i+=3){const vs=Array.from(delaunay.triangles.slice(i,i+3),j=>points[j]);const a=area(...vs);if(a<1e-6)continue;const key=vs.flatMap(v=>v.members.map(p=>p.id)).sort().join(':');const ball=vs.some(v=>v.members.some(p=>p.id==='ball')),estimated=vs.some(v=>!v.is_detected);const scoreVertices=vs.map(scoringSite);const centroid={x:scoreVertices.reduce((s,p)=>s+p.x,0)/3,y:scoreVertices.reduce((s,p)=>s+p.y,0)/3};const potential=danger.potential(centroid),entry=access.triangle(scoreVertices);triangles.push({vs,area:a,key,ball,estimated,potential,entry});poly(vs);const teams=new Set(vs.flatMap(v=>v.members.filter(p=>p.id!=='ball').map(p=>p.team)));const colour=$('colour').value==='access'?accessColour(entry.score):$('colour').value==='danger'?dangerColour(potential):$('colour').value==='area'?`hsl(${170-Math.min(a/350,1)*130} 62% 60%)`:teams.size===1?teamColour([...teams][0]):'#baabc9';ctx.fillStyle=colour;ctx.globalAlpha=$('ballOnly').checked&&!ball?.035:(['danger','access'].includes($('colour').value)?.72:.2);ctx.fill();ctx.strokeStyle=selected===key?'#ffffff':colour;ctx.globalAlpha=$('ballOnly').checked&&!ball?.08:.65;ctx.lineWidth=selected===key?3:1.5;ctx.setLineDash(estimated&&$('showEstimates').checked?[4,4]:[]);ctx.stroke();
  // Team edges are drawn independently of the tile fill/score.
  for(let e=0;e<3;e++){const p=vs[e],q=vs[(e+1)%3];const pt=new Set(p.members.filter(m=>m.id!=='ball').map(m=>m.team)),qt=new Set(q.members.filter(m=>m.id!=='ball').map(m=>m.team));const same=pt.size===1&&qt.size===1&&[...pt][0]=== [...qt][0];ctx.beginPath();ctx.moveTo(...px(p.x,p.y));ctx.lineTo(...px(q.x,q.y));ctx.globalAlpha=.95;ctx.strokeStyle=same?teamColour([...pt][0]):'#f4d292';ctx.lineWidth=same?2.5:1.8;ctx.setLineDash(same?[]:[5,3]);ctx.stroke();}ctx.setLineDash([]);}}
+ }
  const chosen=triangles.find(t=>t.key===selected);
  if(chosen){poly(chosen.vs);ctx.globalAlpha=1;ctx.setLineDash([]);ctx.strokeStyle='#071219';ctx.lineWidth=6;ctx.stroke();ctx.strokeStyle='#ffffff';ctx.lineWidth=3;ctx.stroke();}
  ctx.restore();
@@ -112,7 +183,8 @@ function draw(){if(!meta||!frames.length)return;const rect=canvas.getBoundingCli
   }
  }
  ctx.globalAlpha=1;ctx.setLineDash([]);ctx.strokeStyle='#6c9690';ctx.lineWidth=1;ctx.strokeRect(...px(-L/2,W/2),L*scale,W*scale);ctx.beginPath();ctx.moveTo(...px(0,-W/2));ctx.lineTo(...px(0,W/2));ctx.stroke();ctx.beginPath();ctx.arc(...px(0,0),9.15*scale,0,Math.PI*2);ctx.stroke();for(const side of [-1,1]){const x=side<0?-L/2:L/2-16.5;ctx.strokeRect(...px(x,20.16),16.5*scale,40.32*scale);const gx=side<0?-L/2:L/2-5.5;ctx.strokeRect(...px(gx,9.16),5.5*scale,18.32*scale);}
- vertices(f,meta,{team:$('team').value,ball:true,detectedOnly:$('detected').checked}).forEach(p=>{const ball=p.members.some(v=>v.id==='ball');if(ball){drawSoccerBall(...px(p.x,p.y),dangerColour(danger.current),p.is_detected);return;}ctx.beginPath();ctx.arc(...px(p.x,p.y),Math.max(6,scale*1.2),0,Math.PI*2);ctx.fillStyle=teamColour(p.team);ctx.fill();const showEstimate=!p.is_detected&&$('showEstimates').checked;ctx.strokeStyle=showEstimate?'#ffcc81':'#102321';ctx.setLineDash(showEstimate?[2,2]:[]);ctx.lineWidth=2;ctx.stroke();ctx.setLineDash([]);if(!ball){ctx.fillStyle='#ffffff';ctx.font='bold 9px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(p.number??'?',...px(p.x,p.y));}});
+ vertices(f,meta,{team:isIntegrity?'all':$('team').value,ball:true,detectedOnly:$('detected').checked}).forEach(p=>{const ball=p.members.some(v=>v.id==='ball');if(ball){drawSoccerBall(...px(p.x,p.y),dangerColour(danger.current),p.is_detected);return;}ctx.beginPath();ctx.arc(...px(p.x,p.y),Math.max(6,scale*1.2),0,Math.PI*2);ctx.fillStyle=teamColour(p.team);ctx.fill();const showEstimate=!p.is_detected&&$('showEstimates').checked;ctx.strokeStyle=showEstimate?'#ffcc81':'#102321';ctx.setLineDash(showEstimate?[2,2]:[]);ctx.lineWidth=2;ctx.stroke();ctx.setLineDash([]);if(!ball){ctx.fillStyle='#ffffff';ctx.font='bold 9px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(p.number??'?',...px(p.x,p.y));}});
+ drawPassAdvice(px);
  $('estimateLegend').hidden=!$('showEstimates').checked;
  $('jumpShot').hidden=!loadedChance;
  if(loadedChance){const seconds=(f.frame-loadedChance.anchorFrame)/10;$('chanceStage').textContent=`${loadedChance.outcome==='goal'?'Confirmed goal':'Recorded shot'} at ${loadedChance.time} · ${seconds<0?Math.abs(seconds).toFixed(1)+' s before marker':seconds.toFixed(1)+' s after marker'} · ${loadedChance.team}`;}else $('chanceStage').textContent='';
@@ -144,7 +216,7 @@ function positionTilePopup(t){
  popup.style.setProperty('--anchor-x',`${Math.max(16,Math.min(size.width-16,x-left))}px`);
 }
 function selectTriangle(clientX,clientY){
- if(!transform||$('mode').value!=='triangles')return;
+ if(!transform||$('viewMode').value==='integrity'||$('mode').value!=='triangles')return;
  const r=canvas.getBoundingClientRect(),p={x:(clientX-r.left-transform.ox)/transform.scale,y:-(clientY-r.top-transform.oy)/transform.scale};
  if(Math.abs(p.x)>meta.pitch_length/2||Math.abs(p.y)>meta.pitch_width/2)return;
  const hit=triangles.find(t=>inside(p,...t.vs));if(!hit)return;
@@ -196,12 +268,37 @@ async function loadClip(chance=null){
 }
 $('load').onclick=()=>loadClip(chances.find(c=>c.id===$('chance').value)??null);
 $('chance').onchange=()=>{const c=chances.find(c=>c.id===$('chance').value);if(c){$('start').value=c.startFrame;$('phase').value='';return loadClip(c);}};
-$('jumpShot').onclick=()=>{if(!loadedChance)return;index=frames.reduce((best,f,i)=>Math.abs(f.frame-loadedChance.anchorFrame)<Math.abs(frames[best].frame-loadedChance.anchorFrame)?i:best,0);playing=false;$('play').textContent='▶ Play';draw();};
+$('jumpShot').onclick=()=>{if(!loadedChance)return;resetPassAdvice();index=frames.reduce((best,f,i)=>Math.abs(f.frame-loadedChance.anchorFrame)<Math.abs(frames[best].frame-loadedChance.anchorFrame)?i:best,0);playing=false;$('play').textContent='▶ Play';draw();};
 $('match').onchange=choose;$('demo').onclick=demo;
-$('play').onclick=()=>{selected=null;if(index>=frames.length-1)index=0;playing=!playing;last=performance.now();$('play').textContent=playing?'Ⅱ Pause':'▶ Play';draw();};
-$('scrub').oninput=()=>{index=Number($('scrub').value);playing=false;$('play').textContent='▶ Play';draw();};
+$('play').onclick=()=>{selected=null;if(index>=frames.length-1){index=0;resetPassAdvice();}playing=!playing;last=performance.now();$('play').textContent=playing?'Ⅱ Pause':'▶ Play';draw();};
+$('scrub').oninput=()=>{index=Number($('scrub').value);passPlayback.seek(frames[index].frame,frames[index].period,passingData?.passes??[]);passSnapshot=null;playing=false;$('play').textContent='▶ Play';draw();};
 for(const id of ['mode','team','colour','ball','ballOnly','detected','showEstimates','showReceiving'])$(id).onchange=()=>{selected=null;$('inspect').textContent=$('mode').value==='voronoi'?'Cells show proximity to each selected site; ball cells are neutral.':'Pause and click a triangle to inspect it.';draw();};
-function tick(now){if(playing&&frames.length){const dt=50/Number($('speed').value);if(now-last>=dt){index=Math.min(frames.length-1,index+Math.floor((now-last)/dt));last=now;draw();if(index===frames.length-1){playing=false;$('play').textContent='▶ Replay';}}}requestAnimationFrame(tick);}requestAnimationFrame(tick);window.addEventListener('resize',draw);
+function tick(now){
+ if(playing&&frames.length){
+  if(now<passPlayback.until){last=now;}else{
+   const dt=100/Number($('speed').value);
+   if(now-last>=dt){
+    const proposed=Math.min(frames.length-1,index+Math.floor((now-last)/dt));
+    const next=passPlayback.advance(index,proposed,frames,passingData?.passes??[],now);
+    index=next.index;last=now;draw();
+    if(next.waiting)passPlayback.until=performance.now()+1000;
+    if(index===frames.length-1&&!next.waiting){playing=false;$('play').textContent='▶ Replay';}
+   }
+  }
+ }
+ requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);window.addEventListener('resize',draw);
+let tilingHalos=true,integrityHalos=false;
+$('viewMode').onchange=()=>{
+ const enabled=$('viewMode').value==='integrity';
+ if(enabled){tilingHalos=$('showReceiving').checked;$('showReceiving').checked=integrityHalos;}else{integrityHalos=$('showReceiving').checked;$('showReceiving').checked=tilingHalos;}
+ document.body.classList.toggle('integrity-view',enabled);
+ $('tilingSettings').hidden=enabled;$('integritySettings').hidden=!enabled;selected=null;
+ $('inspectorTitle').textContent=enabled?'Defensive integrity diagnostics':'Tile inspector';
+ draw();
+};
+for(const id of ['integrityColour','legacyDanger','integrityTiles','integrityConnections','integrityMarking','integrityFacing'])$(id).onchange=()=>{$('legacySetting').hidden=$('integrityColour').value!=='danger';draw();};
 async function startup(){
  let expected=++request;
  say('Loading the default high-danger chance…');

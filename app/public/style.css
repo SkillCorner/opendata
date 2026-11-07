@@ -101,3 +101,9 @@ body.pitch-focus{overflow:hidden}
 #controls{align-self:start;height:fit-content;padding:0}
 #meshControls>summary{padding:16px;min-height:44px}
 #meshControls>.control-body{padding:0 16px 16px}
+
+.view-switch{display:flex;align-items:center;gap:10px;margin:0;font-size:11px;color:#9ab2ba}.view-switch select{width:auto;margin:0;padding:7px 10px;font-size:13px;min-height:36px}
+.pass-advice:empty{display:none}.pass-advice{margin:8px 0;padding:8px 12px;background:#182e32;color:#d9eae5;font-size:11px;line-height:1.5;border:1px dashed #7faaa0;border-radius:6px;flex-shrink:0}
+.pitch-focus #dangerPanel{max-height:25dvh;overflow:auto}
+
+.integrity-view #tilingExtras,.integrity-view #meshExplanation,.integrity-view .tiling-edge-legend{display:none}
