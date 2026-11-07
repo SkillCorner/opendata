@@ -19,6 +19,14 @@ function receivingOverlay(f){
  haloCanvas.width=grid.width;haloCanvas.height=grid.height;haloCtx.putImageData(new ImageData(pixels,grid.width,grid.height),0,0);
 }
 const say=s=>{$('status').textContent=s;$('viewerStatus').textContent=s;};
+function positionReceivingLegend(){
+ const help=$('receivingHelp').getBoundingClientRect(),tip=$('receivingLegend'),box=tip.getBoundingClientRect();
+ const left=Math.max(8,Math.min(help.left,window.innerWidth-box.width-8));
+ const top=help.bottom+8+box.height<=window.innerHeight?help.bottom+8:Math.max(8,help.top-box.height-8);
+ tip.style.left=`${left}px`;tip.style.top=`${top}px`;
+}
+$('receivingLegend').addEventListener('toggle',e=>{if(e.newState==='open')positionReceivingLegend();});
+window.addEventListener('resize',()=>{if($('receivingLegend').matches(':popover-open'))positionReceivingLegend();});
 const mobileLayout=window.matchMedia('(max-width: 900px)');
 function setControlLayout(){$('meshControls').open=!mobileLayout.matches;}
 setControlLayout();
@@ -86,8 +94,6 @@ function draw(){if(!meta||!frames.length)return;const rect=canvas.getBoundingCli
  else{for(let i=0;i<delaunay.triangles.length;i+=3){const vs=Array.from(delaunay.triangles.slice(i,i+3),j=>points[j]);const a=area(...vs);if(a<1e-6)continue;const key=vs.flatMap(v=>v.members.map(p=>p.id)).sort().join(':');const ball=vs.some(v=>v.members.some(p=>p.id==='ball')),estimated=vs.some(v=>!v.is_detected);const scoreVertices=vs.map(scoringSite);const centroid={x:scoreVertices.reduce((s,p)=>s+p.x,0)/3,y:scoreVertices.reduce((s,p)=>s+p.y,0)/3};const potential=danger.potential(centroid),entry=access.triangle(scoreVertices);triangles.push({vs,area:a,key,ball,estimated,potential,entry});poly(vs);const teams=new Set(vs.flatMap(v=>v.members.filter(p=>p.id!=='ball').map(p=>p.team)));const colour=$('colour').value==='access'?accessColour(entry.score):$('colour').value==='danger'?dangerColour(potential):$('colour').value==='area'?`hsl(${170-Math.min(a/350,1)*130} 62% 60%)`:teams.size===1?teamColour([...teams][0]):'#baabc9';ctx.fillStyle=colour;ctx.globalAlpha=$('ballOnly').checked&&!ball?.035:(['danger','access'].includes($('colour').value)?.72:.2);ctx.fill();ctx.strokeStyle=selected===key?'#ffffff':colour;ctx.globalAlpha=$('ballOnly').checked&&!ball?.08:.65;ctx.lineWidth=selected===key?3:1.5;ctx.setLineDash(estimated&&$('showEstimates').checked?[4,4]:[]);ctx.stroke();
  // Team edges are drawn independently of the tile fill/score.
  for(let e=0;e<3;e++){const p=vs[e],q=vs[(e+1)%3];const pt=new Set(p.members.filter(m=>m.id!=='ball').map(m=>m.team)),qt=new Set(q.members.filter(m=>m.id!=='ball').map(m=>m.team));const same=pt.size===1&&qt.size===1&&[...pt][0]=== [...qt][0];ctx.beginPath();ctx.moveTo(...px(p.x,p.y));ctx.lineTo(...px(q.x,q.y));ctx.globalAlpha=.95;ctx.strokeStyle=same?teamColour([...pt][0]):'#f4d292';ctx.lineWidth=same?2.5:1.8;ctx.setLineDash(same?[]:[5,3]);ctx.stroke();}ctx.setLineDash([]);}}
- $('receivingLegend').hidden=!$('showReceiving').checked;
- $('receivingStatus').textContent=haloModel?.reason??'Pale: slim chance · bright green: high chance · below 5% hidden';
  const chosen=triangles.find(t=>t.key===selected);
  if(chosen){poly(chosen.vs);ctx.globalAlpha=1;ctx.setLineDash([]);ctx.strokeStyle='#071219';ctx.lineWidth=6;ctx.stroke();ctx.strokeStyle='#ffffff';ctx.lineWidth=3;ctx.stroke();}
  ctx.restore();
