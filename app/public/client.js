@@ -98,7 +98,7 @@ function positionReceivingLegend(){
 $('receivingLegend').addEventListener('toggle',e=>{if(e.newState==='open')positionReceivingLegend();});
 window.addEventListener('resize',()=>{if($('receivingLegend').matches(':popover-open'))positionReceivingLegend();});
 let activeSettingHelp=null,helpPinned=false,helpCloseTimer;
-const helpButton=id=>$(id==='viewIntegrity'?'viewIntegrity':'help-'+id);
+const helpButton=id=>$('help-'+id);
 function updateSettingHelp(){
  if(!activeSettingHelp)return;
  const info=settingHelp(activeSettingHelp,$(activeSettingHelp).value,$('legacyDanger').checked);
@@ -125,8 +125,8 @@ function scheduleHelpClose(){
 }
 for(const id of Object.keys(SETTING_HELP)){
  const button=helpButton(id);
- if(id!=='viewIntegrity'){button.setAttribute('aria-label','About '+SETTING_HELP[id].title);button.title='Explain '+SETTING_HELP[id].title;}
- if(id!=='viewIntegrity')button.onclick=event=>{event?.preventDefault?.();if(helpPinned&&activeSettingHelp===id){closeSettingHelp();}else openSettingHelp(id,true);};
+ button.setAttribute('aria-label','About '+SETTING_HELP[id].title);button.title='Explain '+SETTING_HELP[id].title;
+ button.onclick=event=>{event?.preventDefault?.();if(helpPinned&&activeSettingHelp===id){closeSettingHelp();}else openSettingHelp(id,true);};
  button.onpointerenter=event=>{if(event.pointerType==='mouse'&&!helpPinned&&(id!=='viewIntegrity'||currentView==='integrity'))openSettingHelp(id);};
  button.onpointerleave=scheduleHelpClose;button.onfocus=()=>{if(!helpPinned&&(id!=='viewIntegrity'||currentView==='integrity'))openSettingHelp(id);};button.onblur=scheduleHelpClose;
  $(id).addEventListener('change',()=>{updateSettingHelp();if(activeSettingHelp)positionSettingHelp();});
@@ -336,7 +336,7 @@ function setViewMode(value){
  closeSettingHelp();currentView=value;
  const enabled=currentView==='integrity';
  $('viewTiling').setAttribute('aria-pressed',String(!enabled));$('viewIntegrity').setAttribute('aria-pressed',String(enabled));
- $('viewIntegrity').setAttribute('aria-describedby',enabled?'settingTooltip':'');
+ $('help-viewIntegrity').hidden=!enabled;
  if(enabled){tilingHalos=$('showReceiving').checked;$('showReceiving').checked=integrityHalos;}else{integrityHalos=$('showReceiving').checked;$('showReceiving').checked=tilingHalos;}
  document.body.classList.toggle('integrity-view',enabled);
  $('tilingSettings').hidden=enabled;$('integritySettings').hidden=!enabled;selected=null;
@@ -344,7 +344,7 @@ function setViewMode(value){
  draw();
 };
 $('viewTiling').onclick=()=>setViewMode('tiling');
-$('viewIntegrity').onclick=()=>{setViewMode('integrity');if(helpPinned&&activeSettingHelp==='viewIntegrity')closeSettingHelp();else openSettingHelp('viewIntegrity',true);};
+$('viewIntegrity').onclick=()=>setViewMode('integrity');
 for(const id of ['integrityColour','legacyDanger','integrityTiles','integrityConnections','integrityMarking','integrityFacing'])$(id).onchange=()=>{$('legacySetting').hidden=$('integrityColour').value!=='danger';draw();};
 async function startup(){
  let expected=++request;

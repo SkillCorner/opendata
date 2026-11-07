@@ -5,7 +5,7 @@ import {SETTING_HELP,settingHelp} from '../public/settings-help.js';
 test('every explained setting has a separately labelled info button',async()=>{
  const html=await readFile(new URL('../public/index.html',import.meta.url),'utf8');
  for(const id of Object.keys(SETTING_HELP)){
-  assert.ok(html.includes(`id="${id==='viewIntegrity'?id:'help-'+id}"`),id);
+  assert.ok(html.includes(`id="help-${id}"`),id);
   assert.ok(SETTING_HELP[id].title,id);
  }
  assert.ok(html.includes('id="receivingLegend"'),'preserve the existing halo legend');
