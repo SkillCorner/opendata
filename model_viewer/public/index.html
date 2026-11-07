@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pitch Model Lab</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div>
+    <h1>Pitch Model Lab</h1>
+    <p class="sub">v0 vs v2 pitch control and EPV · SkillCorner open data, A-League 2024/25 · 10 Hz</p>
+  </div>
+  <button id="aboutBtn" class="ghost" aria-expanded="false" aria-controls="about">About the models</button>
+</header>
+
+<section id="about" class="about" hidden>
+  <div>
+    <h2>v0 · literature settings, location value</h2>
+    <p>Pitch control uses settings borrowed from the literature: 0.5 s reaction, 15 m/s ground pass, σ = 0.45,
+    12 m/s lofted pass with 0.6 s hang time. The value of a spot is SkillCorner's possession EPV smoothed by location only.</p>
+  </div>
+  <div>
+    <h2>v2 · fitted settings, defensive-context value</h2>
+    <p>The same pitch-control model with 10 settings fitted on 11,110 passes from 15 training matches
+    (held-out AUC 0.885, calibrated). The value of a spot is the location value × a multiplier for the
+    defensive situation there: how fast the nearest defender arrives, how close they are, and how many defenders are goal-side.</p>
+  </div>
+  <div>
+    <h2>Reading the layers</h2>
+    <p><b>Pitch control</b>: chance the attacking team gets to the ball first (P<sub>att</sub>) or that a pass there is completed
+    (P<sub>succ</sub>, with interception along the path and the lofted option). <b>EPV</b>: value of having the ball at each spot.
+    <b>Gain</b>: P<sub>succ</sub>·V − (1−P<sub>succ</sub>)·V<sub>opp</sub> − V(ball), what a pass there is worth.
+    Surfaces are always from the attacking team's point of view.</p>
+  </div>
+  <div>
+    <h2>Caveats</h2>
+    <p>No receiver is known on a free-playing frame, so run credit is not applied. The v2 value was fitted on possession-start
+    points and is applied here to every cell. Five matches (marked held-out) were not used to fit anything.</p>
+  </div>
+</section>
+
+<main class="layout">
+  <aside class="panel controls">
+    <label class="field"><span>Match</span><select id="match"></select></label>
+
+    <div class="field">
+      <span>Sequences</span>
+      <div class="chips" id="filter" role="radiogroup" aria-label="Sequence filter">
+        <button data-f="goal" role="radio">Goals</button>
+        <button data-f="shot" role="radio">Shots</button>
+        <button data-f="epv" role="radio">High EPV</button>
+        <button data-f="all" role="radio">All</button>
+      </div>
+      <ol id="seqList" class="seqs" aria-label="Possession sequences"></ol>
+    </div>
+
+    <details class="custom">
+      <summary>Custom clip</summary>
+      <div class="row">
+        <label class="field small"><span>Period</span><select id="cPeriod"><option value="1">1st</option><option value="2">2nd</option></select></label>
+        <label class="field small"><span>Start (mm:ss)</span><input id="cStart" value="10:00" inputmode="numeric"></label>
+        <label class="field small"><span>Length (s)</span><input id="cLen" value="20" inputmode="numeric"></label>
+      </div>
+      <button id="cLoad" class="primary">Load clip</button>
+    </details>
+  </aside>
+
+  <section class="stage">
+    <div class="toolbar">
+      <div class="seg" id="layer" role="radiogroup" aria-label="Layer">
+        <button data-v="pc" role="radio">Pitch control</button>
+        <button data-v="epv" role="radio">EPV</button>
+        <button data-v="gain" role="radio">Gain</button>
+      </div>
+      <div class="seg" id="pcKind" role="radiogroup" aria-label="Pitch control measure">
+        <button data-v="att" role="radio" title="Chance the attack reaches the ball first">P<sub>att</sub></button>
+        <button data-v="succ" role="radio" title="Chance a pass there is completed">P<sub>succ</sub></button>
+      </div>
+      <div class="seg" id="view" role="radiogroup" aria-label="View">
+        <button data-v="side" role="radio">Side by side</button>
+        <button data-v="single" role="radio">Single</button>
+        <button data-v="diff" role="radio">v2 − v0</button>
+      </div>
+      <div class="seg" id="single" role="radiogroup" aria-label="Model in single view">
+        <button data-v="v0" role="radio">v0</button>
+        <button data-v="v2" role="radio">v2</button>
+      </div>
+    </div>
+
+    <div class="headline">
+      <span id="attackLabel"></span>
+      <span id="caption" class="caption"></span>
+    </div>
+
+    <div id="pitches" class="pitches"></div>
+
+    <div class="legend" id="legend"></div>
+
+    <div class="player">
+      <button id="play" class="primary icon" aria-label="Play">▶</button>
+      <button id="back" class="icon ghost" aria-label="Back one frame">◀︎</button>
+      <button id="fwd" class="icon ghost" aria-label="Forward one frame">▶︎</button>
+      <div class="scrub">
+        <input id="scrub" type="range" min="0" max="0" value="0" aria-label="Frame">
+        <div id="ticks" class="ticks"></div>
+      </div>
+      <div class="seg compact" id="speed" role="radiogroup" aria-label="Speed">
+        <button data-v="0.5" role="radio">½×</button>
+        <button data-v="1" role="radio">1×</button>
+        <button data-v="2" role="radio">2×</button>
+      </div>
+      <span id="clock" class="clock">—</span>
+    </div>
+    <div class="status"><span id="status"></span><span id="progress"></span></div>
+
+    <table class="readout" id="readout" aria-live="polite">
+      <thead><tr><th>At cursor</th><th>P<sub>att</sub></th><th>P<sub>succ</sub></th><th>V</th><th>Gain</th></tr></thead>
+      <tbody>
+        <tr><th>v0</th><td data-k="v0-0"></td><td data-k="v0-1"></td><td data-k="v0-2"></td><td data-k="v0-3"></td></tr>
+        <tr><th>v2</th><td data-k="v2-0"></td><td data-k="v2-1"></td><td data-k="v2-2"></td><td data-k="v2-3"></td></tr>
+      </tbody>
+      <caption id="readoutCap">Hover over a pitch</caption>
+    </table>
+  </section>
+</main>
+<script type="module" src="app.js"></script>
+</body>
+</html>

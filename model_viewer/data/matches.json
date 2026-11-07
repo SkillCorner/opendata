@@ -1,0 +1,162 @@
+[
+ {
+  "id": 1874553,
+  "label": "Brisbane FC 2\u20133 Adelaide United",
+  "date": "2024-11-23",
+  "round": 5,
+  "goals": 5,
+  "test_match": false
+ },
+ {
+  "id": 1886347,
+  "label": "Auckland FC 2\u20130 Newcastle",
+  "date": "2024-11-30",
+  "round": 6,
+  "goals": 2,
+  "test_match": false
+ },
+ {
+  "id": 1899585,
+  "label": "Auckland FC 2\u20131 Wellington P FC",
+  "date": "2024-12-07",
+  "round": 7,
+  "goals": 2,
+  "test_match": false
+ },
+ {
+  "id": 1925299,
+  "label": "Brisbane FC 0\u20131 Perth Glory",
+  "date": "2024-12-21",
+  "round": 9,
+  "goals": 1,
+  "test_match": true
+ },
+ {
+  "id": 1927964,
+  "label": "Western Sydney 4\u20131 Wellington P FC",
+  "date": "2024-12-22",
+  "round": 9,
+  "goals": 5,
+  "test_match": false
+ },
+ {
+  "id": 1953632,
+  "label": "CC Mariners 1\u20131 Melbourne City",
+  "date": "2024-12-31",
+  "round": 11,
+  "goals": 2,
+  "test_match": false
+ },
+ {
+  "id": 1959846,
+  "label": "Melbourne V FC 3\u20134 Western United",
+  "date": "2025-01-10",
+  "round": 13,
+  "goals": 7,
+  "test_match": true
+ },
+ {
+  "id": 1986691,
+  "label": "Western Sydney 0\u20131 Auckland FC",
+  "date": "2025-01-26",
+  "round": 16,
+  "goals": 1,
+  "test_match": false
+ },
+ {
+  "id": 1996435,
+  "label": "Sydney FC 4\u20131 Adelaide United",
+  "date": "2025-02-01",
+  "round": 17,
+  "goals": 5,
+  "test_match": false
+ },
+ {
+  "id": 1996436,
+  "label": "Auckland FC 2\u20131 Macarthur FC",
+  "date": "2025-02-01",
+  "round": 17,
+  "goals": 3,
+  "test_match": false
+ },
+ {
+  "id": 2006229,
+  "label": "Melbourne City 2\u20130 Macarthur FC",
+  "date": "2025-03-07",
+  "round": 22,
+  "goals": 1,
+  "test_match": true
+ },
+ {
+  "id": 2006363,
+  "label": "Melbourne V FC 3\u20130 CC Mariners",
+  "date": "2025-03-08",
+  "round": 22,
+  "goals": 3,
+  "test_match": true
+ },
+ {
+  "id": 2007448,
+  "label": "Perth Glory 1\u20133 Brisbane FC",
+  "date": "2025-03-15",
+  "round": 23,
+  "goals": 4,
+  "test_match": false
+ },
+ {
+  "id": 2007721,
+  "label": "Auckland FC 2\u20132 CC Mariners",
+  "date": "2025-03-16",
+  "round": 23,
+  "goals": 4,
+  "test_match": false
+ },
+ {
+  "id": 2010085,
+  "label": "Melbourne City 1\u20130 CC Mariners",
+  "date": "2025-04-05",
+  "round": 25,
+  "goals": 1,
+  "test_match": true
+ },
+ {
+  "id": 2011166,
+  "label": "Wellington P FC 2\u20133 Melbourne V FC",
+  "date": "2025-04-12",
+  "round": 26,
+  "goals": 5,
+  "test_match": false
+ },
+ {
+  "id": 2013725,
+  "label": "Western United 1\u20130 Sydney FC",
+  "date": "2025-04-27",
+  "round": 28,
+  "goals": 1,
+  "test_match": false
+ },
+ {
+  "id": 2015213,
+  "label": "Western United 4\u20132 Auckland FC",
+  "date": "2025-05-03",
+  "round": 29,
+  "goals": 6,
+  "test_match": false
+ },
+ {
+  "id": 2016236,
+  "label": "Western United 3\u20132 Adelaide United",
+  "date": "2025-05-09",
+  "round": 1,
+  "goals": 4,
+  "test_match": false
+ },
+ {
+  "id": 2017461,
+  "label": "Melbourne V FC 0\u20131 Auckland FC",
+  "date": "2025-05-17",
+  "round": 1,
+  "goals": 1,
+  "test_match": false
+ }
+]
