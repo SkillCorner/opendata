@@ -129,3 +129,7 @@ body.pitch-focus{overflow:hidden}
 .row>.setting-help-row{flex:1;min-width:0}.setting-help-row input[type=number]{min-width:0}
 
 .help-equation{white-space:pre-wrap;overflow-wrap:anywhere;margin-top:9px;padding:8px;border-radius:5px;background:#0d1c20;color:#d0f3df;font:10px/1.6 ui-monospace,monospace}
+
+/* Centre within the actual title-to-clock gap, with a 25% smaller control. */
+.match-header{grid-template-columns:minmax(0,max-content) minmax(max-content,1fr) max-content}
+#focusPitch{transform:scale(.75);transform-origin:center}
