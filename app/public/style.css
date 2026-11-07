@@ -77,3 +77,5 @@ body.pitch-focus{overflow:hidden}
 #tileFeedback .tile-feedback-heading button{min-width:32px;min-height:32px;padding:0;background:transparent;font-size:20px}
 .tile-popup-metrics{gap:5px;padding-right:22px}.tile-popup-metrics strong{font-size:13px;margin-top:3px}.tile-popup-metrics small{font-size:7px;letter-spacing:.6px}
 .tile-route{font-size:10px;margin:7px 0 5px}.tile-players{font-size:11px;margin:5px 0}.tile-edges{font-size:9px;margin-top:4px}
+
+.receiving-legend{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0;font-size:.85rem}.receiving-legend[hidden]{display:none}.receiving-gradient{width:100px;height:12px;border-radius:8px;background:linear-gradient(to right,#f5faf5,#00ff00)}.receiving-legend small{flex-basis:100%;opacity:.75}

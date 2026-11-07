@@ -1,10 +1,22 @@
+import {buildPassing,haloColour} from './passing.js';
 import {buildAccess,accessColour} from './access.js';
 import {possessionSource,POSSESSION_HOLD_FRAMES} from './possession.js';
 import {buildDanger,dangerColour,teamScaleColour} from './danger.js';
 import {vertices,area,inside} from './geometry.js';
 const $=id=>document.getElementById(id),canvas=$('pitch'),ctx=canvas.getContext('2d');
 let frames=[],meta,phases=[],index=0,playing=false,last=0,triangles=[],selected=null,transform,request=0;
-let chances=[],loadedChance=null;
+let chances=[],loadedChance=null,passingData=null;
+const haloCanvas=document.createElement('canvas'),haloCtx=haloCanvas.getContext('2d');
+let haloCacheFrame=null,haloCacheData=null,haloModel=null;
+function receivingOverlay(f){
+ if(haloCacheFrame===f&&haloCacheData===passingData)return;
+ haloCacheFrame=f;haloCacheData=passingData;
+ haloModel=buildPassing(f,frames[index-2],frames[index+2],meta,passingData);
+ if(haloModel.reason)return;
+ const grid=haloModel.grid(),pixels=new Uint8ClampedArray(grid.width*grid.height*4);
+ grid.values.forEach((p,i)=>{const c=haloColour(p);if(c)pixels.set(c,i*4);});
+ haloCanvas.width=grid.width;haloCanvas.height=grid.height;haloCtx.putImageData(new ImageData(pixels,grid.width,grid.height),0,0);
+}
 const say=s=>{$('status').textContent=s;$('viewerStatus').textContent=s;};
 const mobileLayout=window.matchMedia('(max-width: 900px)');
 function setControlLayout(){$('meshControls').open=!mobileLayout.matches;}
@@ -32,7 +44,7 @@ function centerInitialMobileMesh(){
 async function get(url){const r=await fetch(url);const data=await r.json();if(!r.ok)throw Error(data.error||'Request failed');return data;}
 function configure(m){meta=m;$('title').textContent=`${m.home_team.name} vs ${m.away_team.name}`;$('dimensions').textContent=`${m.pitch_length} × ${m.pitch_width} m`;$('team').replaceChildren(new Option('Both teams','all'),new Option(m.home_team.name,String(m.home_team.id)),new Option(m.away_team.name,String(m.away_team.id)));}
 function install(data){$('startupLoading').hidden=true;$('play').disabled=false;$('scrub').disabled=false;loadedChance=null;frames=data;index=0;playing=false;$('play').textContent='▶ Play';$('scrub').max=frames.length-1;selected=null;draw();}
-async function demo(){const token=++request;try{const d=await get('/demo.json');if(token!==request)return;configure(d.metadata);install(d.frames);$('context').textContent='Bundled opening clip · real tracking · stadium orientation';say('Demo ready. Select a match and phase to explore another clip.');}catch(e){say(e.message);}}
+async function demo(){const token=++request;try{const d=await get('/demo.json');if(token!==request)return;configure(d.metadata);passingData=await get(`/api/matches/${d.metadata.id}/passing`).catch(()=>null);if(token!==request)return;install(d.frames);$('context').textContent='Bundled opening clip · real tracking · stadium orientation';say('Demo ready. Select a match and phase to explore another clip.');}catch(e){say(e.message);}}
 function teamColour(team){return teamScaleColour(team,meta,frames[index]?.period);}
 function drawSoccerBall(x,y,tint,detected){
  const r=4.6;
@@ -73,6 +85,9 @@ function draw(){if(!meta||!frames.length)return;const rect=canvas.getBoundingCli
  else{for(let i=0;i<delaunay.triangles.length;i+=3){const vs=Array.from(delaunay.triangles.slice(i,i+3),j=>points[j]);const a=area(...vs);if(a<1e-6)continue;const key=vs.flatMap(v=>v.members.map(p=>p.id)).sort().join(':');const ball=vs.some(v=>v.members.some(p=>p.id==='ball')),estimated=vs.some(v=>!v.is_detected);const scoreVertices=vs.map(scoringSite);const centroid={x:scoreVertices.reduce((s,p)=>s+p.x,0)/3,y:scoreVertices.reduce((s,p)=>s+p.y,0)/3};const potential=danger.potential(centroid),entry=access.triangle(scoreVertices);triangles.push({vs,area:a,key,ball,estimated,potential,entry});poly(vs);const teams=new Set(vs.flatMap(v=>v.members.filter(p=>p.id!=='ball').map(p=>p.team)));const colour=$('colour').value==='access'?accessColour(entry.score):$('colour').value==='danger'?dangerColour(potential):$('colour').value==='area'?`hsl(${170-Math.min(a/350,1)*130} 62% 60%)`:teams.size===1?teamColour([...teams][0]):'#baabc9';ctx.fillStyle=colour;ctx.globalAlpha=$('ballOnly').checked&&!ball?.035:(['danger','access'].includes($('colour').value)?.72:.2);ctx.fill();ctx.strokeStyle=selected===key?'#ffffff':colour;ctx.globalAlpha=$('ballOnly').checked&&!ball?.08:.65;ctx.lineWidth=selected===key?3:1.5;ctx.setLineDash(estimated&&$('showEstimates').checked?[4,4]:[]);ctx.stroke();
  // Team edges are drawn independently of the tile fill/score.
  for(let e=0;e<3;e++){const p=vs[e],q=vs[(e+1)%3];const pt=new Set(p.members.filter(m=>m.id!=='ball').map(m=>m.team)),qt=new Set(q.members.filter(m=>m.id!=='ball').map(m=>m.team));const same=pt.size===1&&qt.size===1&&[...pt][0]=== [...qt][0];ctx.beginPath();ctx.moveTo(...px(p.x,p.y));ctx.lineTo(...px(q.x,q.y));ctx.globalAlpha=.95;ctx.strokeStyle=same?teamColour([...pt][0]):'#f4d292';ctx.lineWidth=same?2.5:1.8;ctx.setLineDash(same?[]:[5,3]);ctx.stroke();}ctx.setLineDash([]);}}
+ if($('showReceiving').checked){receivingOverlay(f);if(!haloModel.reason){ctx.globalAlpha=1;ctx.imageSmoothingEnabled=false;ctx.drawImage(haloCanvas,...px(-L/2,W/2),L*scale,W*scale);}}
+ $('receivingLegend').hidden=!$('showReceiving').checked;
+ $('receivingStatus').textContent=haloModel?.reason??'Pale: slim chance · bright green: high chance · below 1% hidden';
  const chosen=triangles.find(t=>t.key===selected);
  if(chosen){poly(chosen.vs);ctx.globalAlpha=1;ctx.setLineDash([]);ctx.strokeStyle='#071219';ctx.lineWidth=6;ctx.stroke();ctx.strokeStyle='#ffffff';ctx.lineWidth=3;ctx.stroke();}
  ctx.restore();ctx.globalAlpha=1;ctx.setLineDash([]);ctx.strokeStyle='#6c9690';ctx.lineWidth=1;ctx.strokeRect(...px(-L/2,W/2),L*scale,W*scale);ctx.beginPath();ctx.moveTo(...px(0,-W/2));ctx.lineTo(...px(0,W/2));ctx.stroke();ctx.beginPath();ctx.arc(...px(0,0),9.15*scale,0,Math.PI*2);ctx.stroke();for(const side of [-1,1]){const x=side<0?-L/2:L/2-16.5;ctx.strokeRect(...px(x,20.16),16.5*scale,40.32*scale);const gx=side<0?-L/2:L/2-5.5;ctx.strokeRect(...px(gx,9.16),5.5*scale,18.32*scale);}
@@ -151,7 +166,7 @@ async function loadClip(chance=null){
  say('Streaming real tracking data… later clips may take up to 90 seconds.');
  try{const m=(pendingMeta?.id===Number(id)?pendingMeta:null)??await get(`/api/matches/${id}/metadata`);
  const query=chance?`start=${chance.startFrame}&count=${chance.count}&end=${chance.endFrame}&period=${chance.period}`:`start=${encodeURIComponent($('start').value)}&count=${Number($('duration').value)*10}`;
- const data=await get(`/api/matches/${id}/clip?${query}`);if(token!==request)return;configure(m);install(data);loadedChance=chance;
+ const [data,model]=await Promise.all([get(`/api/matches/${id}/clip?${query}`),get(`/api/matches/${id}/passing`).catch(()=>null)]);if(token!==request)return;configure(m);passingData=model;install(data);loadedChance=chance;
  $('context').textContent=chance?chanceLabel(chance):`Match ${id} · ${$('phase').selectedOptions[0]?.textContent??'Custom clip'} · stadium orientation`;
  draw();
  if(chance){const covers=data[0].frame<=chance.anchorFrame&&data.at(-1).frame>=chance.anchorFrame;const exact=data.some(f=>f.frame===chance.anchorFrame);say(covers?`Chance ready · ${data.length} frames${exact?'':' · exact outcome frame missing; surrounding tracking shown'}.`:'Tracking does not cover the outcome marker for this chance.');canvas.scrollIntoView({block:'center',behavior:'smooth'});}
@@ -165,7 +180,7 @@ $('jumpShot').onclick=()=>{if(!loadedChance)return;index=frames.reduce((best,f,i
 $('match').onchange=choose;$('demo').onclick=demo;
 $('play').onclick=()=>{selected=null;if(index>=frames.length-1)index=0;playing=!playing;last=performance.now();$('play').textContent=playing?'Ⅱ Pause':'▶ Play';draw();};
 $('scrub').oninput=()=>{index=Number($('scrub').value);playing=false;$('play').textContent='▶ Play';draw();};
-for(const id of ['mode','team','colour','ball','ballOnly','detected','showEstimates'])$(id).onchange=()=>{selected=null;$('inspect').textContent=$('mode').value==='voronoi'?'Cells show proximity to each selected site; ball cells are neutral.':'Pause and click a triangle to inspect it.';draw();};
+for(const id of ['mode','team','colour','ball','ballOnly','detected','showEstimates','showReceiving'])$(id).onchange=()=>{selected=null;$('inspect').textContent=$('mode').value==='voronoi'?'Cells show proximity to each selected site; ball cells are neutral.':'Pause and click a triangle to inspect it.';draw();};
 function tick(now){if(playing&&frames.length){const dt=50/Number($('speed').value);if(now-last>=dt){index=Math.min(frames.length-1,index+Math.floor((now-last)/dt));last=now;draw();if(index===frames.length-1){playing=false;$('play').textContent='▶ Replay';}}}requestAnimationFrame(tick);}requestAnimationFrame(tick);window.addEventListener('resize',draw);
 async function startup(){
  let expected=++request;
