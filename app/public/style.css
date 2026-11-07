@@ -96,3 +96,8 @@ body.pitch-focus{overflow:hidden}
 #toggleDanger[aria-expanded="true"] .disclosure-triangle{transform:rotate(90deg)}
 #dangerPanel{flex-shrink:0}
 @media(max-width:600px){.match-header{gap:8px}.match-header .game-heading{font-size:13px}#toggleDanger{gap:6px}#focusPitch{padding:8px;font-size:11px}.match-header #clock{font-size:14px}}
+
+/* Let the settings card follow its disclosure instead of stretching to the viewer. */
+#controls{align-self:start;height:fit-content;padding:0}
+#meshControls>summary{padding:16px;min-height:44px}
+#meshControls>.control-body{padding:0 16px 16px}

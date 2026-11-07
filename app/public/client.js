@@ -27,10 +27,8 @@ function positionReceivingLegend(){
 }
 $('receivingLegend').addEventListener('toggle',e=>{if(e.newState==='open')positionReceivingLegend();});
 window.addEventListener('resize',()=>{if($('receivingLegend').matches(':popover-open'))positionReceivingLegend();});
-const mobileLayout=window.matchMedia('(max-width: 900px)');
-function setControlLayout(){$('meshControls').open=!mobileLayout.matches;}
-setControlLayout();
-mobileLayout.addEventListener?.('change',()=>{setControlLayout();requestAnimationFrame(draw);});
+$('meshControls').open=false;
+$('meshControls').addEventListener('toggle',()=>requestAnimationFrame(draw));
 function showClipPanel(which){
  const chance=which==='chance';$('chancePanel').hidden=!chance;$('clipDetails').hidden=chance;
  $('showChances').setAttribute('aria-expanded',String(chance));$('showClipDetails').setAttribute('aria-expanded',String(!chance));

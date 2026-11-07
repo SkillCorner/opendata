@@ -31,7 +31,7 @@ for(const mobile of [false,true])test(`client chance playback and ${mobile?'mobi
  element('scrub').value=0;element('scrub').oninput();
  assert.equal(element('startupLoading').hidden,true);
  assert.equal(element('jumpShot').hidden,false);
- assert.equal(element('meshControls').open,!mobile);assert.equal(element('chancePanel').hidden,false);assert.equal(element('clipDetails').hidden,true);
+ assert.equal(element('meshControls').open,false);assert.equal(element('chancePanel').hidden,false);assert.equal(element('clipDetails').hidden,true);
  element('showClipDetails').onclick();assert.equal(element('clipDetails').hidden,false);assert.equal(element('chancePanel').hidden,true);assert.equal(element('showClipDetails')['aria-expanded'],'true');
  element('showChances').onclick();assert.equal(element('chancePanel').hidden,false);assert.equal(element('clipDetails').hidden,true);
  element('focusPitch').onclick();assert.equal(classes.has('pitch-focus'),true);assert.equal(element('focusPitch')['aria-pressed'],'true');
