@@ -77,3 +77,59 @@ body.pitch-focus{overflow:hidden}
 #tileFeedback .tile-feedback-heading button{min-width:32px;min-height:32px;padding:0;background:transparent;font-size:20px}
 .tile-popup-metrics{gap:5px;padding-right:22px}.tile-popup-metrics strong{font-size:13px;margin-top:3px}.tile-popup-metrics small{font-size:7px;letter-spacing:.6px}
 .tile-route{font-size:10px;margin:7px 0 5px}.tile-players{font-size:11px;margin:5px 0}.tile-edges{font-size:9px;margin-top:4px}
+
+/* The legend lives in a top-layer tooltip, so it takes no pitch space. */
+.receiving-control{display:flex;align-items:center;gap:8px}.receiving-control .check{flex:1}
+.receiving-help{width:25px;height:25px;flex-shrink:0;padding:0;margin:0;border-radius:50%;background:#263b43;color:#c9f7df;border:1px solid #749e91;font:bold 15px Georgia,serif}
+.receiving-help:hover,.receiving-help:focus-visible{background:#38554d;outline:2px solid #a6ead0;outline-offset:2px}
+.receiving-legend{position:fixed;inset:auto;margin:0;width:min(240px,calc(100vw - 16px));padding:12px;border:1px solid #668c7d;border-radius:7.5px;background:#16292c;color:#e1ecee;box-shadow:0 6px 21px #0009;font-size:9px;line-height:1.55}
+.receiving-legend:popover-open{display:flex;align-items:center;gap:7.5px;flex-wrap:wrap}
+.receiving-gradient{display:inline-block;width:67.5px;height:9px;border-radius:6px;background:linear-gradient(to right,#f5faf5,#00ff00)}
+.receiving-legend #receivingStatus,.receiving-legend small{flex-basis:100%;font-size:9px;letter-spacing:normal;color:#b6cdd0}
+
+.match-header{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:14px;margin-bottom:12px;flex-shrink:0}
+.match-header .game-heading{margin:0;min-width:0;font-size:19px}
+#toggleDanger{display:flex;align-items:center;gap:10px;width:auto;margin:0;padding:4px 0;min-height:44px;background:transparent;color:#e1ecee;text-align:left;font:inherit;font-weight:700}
+#focusPitch{width:auto;margin:0;padding:10px 16px;min-height:44px;justify-self:center}
+.match-header #clock{justify-self:end;white-space:nowrap}
+.disclosure-triangle{width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:7px solid #a6ead0;flex-shrink:0;transform-origin:3px 5px}
+#toggleDanger[aria-expanded="true"] .disclosure-triangle{transform:rotate(90deg)}
+#dangerPanel{flex-shrink:0}
+@media(max-width:600px){.match-header{gap:8px}.match-header .game-heading{font-size:13px}#toggleDanger{gap:6px}#focusPitch{padding:8px;font-size:11px}.match-header #clock{font-size:14px}}
+
+/* Let the settings card follow its disclosure instead of stretching to the viewer. */
+#controls{align-self:start;height:fit-content;padding:0}
+#meshControls>summary{padding:16px;min-height:44px}
+#meshControls>.control-body{padding:0 16px 16px}
+
+.view-switch{display:flex;align-items:center;gap:10px;margin:0 0 0 auto;font-size:11px;color:#9ab2ba}
+.view-toggle{display:flex;gap:3px;padding:4px;border:1px solid #3d535c;border-radius:9px;background:#142128}
+.view-toggle button{width:auto;margin:0;padding:9px 13px;min-height:36px;background:transparent;color:#afc4ca;font-size:12px;white-space:nowrap;border-radius:6px}
+.view-toggle button[aria-pressed="true"]{background:#a6ead0;color:#0d2523;box-shadow:0 1px 4px #0004}
+.view-toggle button:hover{color:#fff;background:#28413e}.view-toggle button[aria-pressed="true"]:hover{background:#b9f2dd;color:#0d2523}
+@media(max-width:600px){header{flex-wrap:wrap;gap:10px}.view-switch{margin-left:auto}.view-toggle button{padding:8px 10px;font-size:11px}}
+
+.pitch-focus #dangerPanel{max-height:25dvh;overflow:auto}
+
+.integrity-view #tilingExtras,.integrity-view #meshExplanation,.integrity-view .tiling-edge-legend{display:none}
+
+.setting-help-row{display:flex;align-items:center;gap:8px;min-width:0}
+.setting-help-row>label{flex:1;min-width:0}.setting-help-row>label.check{margin:8px 0}
+.setting-help{width:25px;height:25px;min-height:25px;flex:0 0 25px;padding:0;margin:0;border-radius:50%;background:#263b43;color:#c9f7df;border:1px solid #749e91;font:bold 15px Georgia,serif}
+.setting-help:hover,.setting-help:focus-visible{background:#38554d;outline:2px solid #a6ead0;outline-offset:2px}
+.colour-setting{margin:12px 0}.colour-setting>label{margin:0 0 6px}.colour-control{display:flex;align-items:center;gap:8px;min-width:0}
+.colour-control>select{width:calc(100% - 33px);min-width:0;flex:1;margin:0}
+.setting-tooltip{position:fixed;inset:auto;margin:0;width:min(260px,calc(100vw - 16px));max-height:calc(100dvh - 16px);overflow:auto;padding:12px;border:1px solid #668c7d;border-radius:8px;background:#16292c;color:#e1ecee;box-shadow:0 6px 21px #0009;font-size:11px;line-height:1.55}
+.setting-tooltip strong{font-size:12px;color:#c5f5df}.setting-tooltip p{margin:7px 0 0;color:#b6cdd0}
+.playback-speed{display:flex;align-items:center;gap:6px;flex:0 0 108px}.playback-speed>select{width:77px;min-width:0;margin:0}
+.transport:has(.playback-speed){grid-template-columns:minmax(76px,auto) minmax(0,1fr) 108px}
+
+.playback-speed>.setting-help{width:25px;margin:0;padding:0}
+
+.row>.setting-help-row{flex:1;min-width:0}.setting-help-row input[type=number]{min-width:0}
+
+.help-equation{white-space:pre-wrap;overflow-wrap:anywhere;margin-top:9px;padding:8px;border-radius:5px;background:#0d1c20;color:#d0f3df;font:10px/1.6 ui-monospace,monospace}
+
+/* Centre within the actual title-to-clock gap, with a 25% smaller control. */
+.match-header{grid-template-columns:minmax(0,max-content) minmax(max-content,1fr) max-content}
+#focusPitch{transform:scale(.75);transform-origin:center}
