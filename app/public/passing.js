@@ -1,13 +1,25 @@
 // Receiver-specific extension of defensive_shape_integrity.ipynb's fitted value_points.
 // The extra arrival gate localises each halo: winning a race is insufficient if
 // neither side can reach the pass. This continuous surface is not separately fitted.
-export const MIN_RECEIVE_PROBABILITY=0.01; // 1%.
+export const MIN_RECEIVE_PROBABILITY=0.02; // 2%.
 const sig=x=>1/(1+Math.exp(-x));
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 export function haloColour(p){
  if(!Number.isFinite(p)||p<MIN_RECEIVE_PROBABILITY)return null;
  const t=Math.max(0,Math.min(1,p));
  return [Math.round(245*(1-t)),Math.round(250+5*t),Math.round(245*(1-t)),Math.round(255*(.24+.58*t))];
+}
+// Keep individual boundaries even where teammates' receiving areas overlap.
+export function haloBoundary(mask,width,height){
+ const edges=[];
+ const on=(x,y)=>x>=0&&x<width&&y>=0&&y<height&&mask[y*width+x];
+ for(let y=0;y<height;y++)for(let x=0;x<width;x++)if(on(x,y)){
+  if(!on(x,y-1))edges.push([x,y,x+1,y]);
+  if(!on(x+1,y))edges.push([x+1,y,x+1,y+1]);
+  if(!on(x,y+1))edges.push([x+1,y+1,x,y+1]);
+  if(!on(x-1,y))edges.push([x,y+1,x,y]);
+ }
+ return edges;
 }
 export function buildPassing(frame,before,after,meta,data){
  const empty=reason=>({reason,receivers:[],at:()=>0});
@@ -69,15 +81,15 @@ export function buildPassing(frame,before,after,meta,data){
  }
  // One shared defender/interception calculation per cell, rather than per player.
  function grid(step=1){
-  const width=Math.ceil(meta.pitch_length/step),height=Math.ceil(meta.pitch_width/step),values=new Float32Array(width*height);
+  const width=Math.ceil(meta.pitch_length/step),height=Math.ceil(meta.pitch_width/step),values=new Float32Array(width*height),masks=receivers.map(()=>new Uint8Array(width*height));
   for(let y=0;y<height;y++)for(let x=0;x<width;x++){
    const q={x:-meta.pitch_length/2+(x+.5)*step,y:meta.pitch_width/2-(y+.5)*step},d=dist(ball,q);
    const td=Math.min(...defenders.map(o=>arrival(o,q)));let intercept=0;
    for(let j=0;j<8;j++){const f=.15+j*.75/7;if(d*f<=2)continue;const pt={x:ball.x+(q.x-ball.x)*f,y:ball.y+(q.y-ball.y)*f};intercept=Math.max(intercept,sig(k*(d*f/s.V_BALL-Math.min(...defenders.map(o=>arrival(o,pt))))));}
-   let best=0;for(const p of receivers)best=Math.max(best,at(p,q,{td,intercept}));
+   let best=0;for(let r=0;r<receivers.length;r++){const probability=at(receivers[r],q,{td,intercept});best=Math.max(best,probability);if(probability>=MIN_RECEIVE_PROBABILITY)masks[r][y*width+x]=1;}
    if(best>=MIN_RECEIVE_PROBABILITY)values[y*width+x]=best;
   }
-  return {width,height,values};
+  return {width,height,values,outlines:masks.map(mask=>haloBoundary(mask,width,height))};
  }
  return {reason:null,receivers,at,grid,projected,carrierId};
 }

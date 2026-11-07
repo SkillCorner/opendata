@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {buildPassing,haloColour,MIN_RECEIVE_PROBABILITY} from '../public/passing.js';
+import {buildPassing,haloBoundary,haloColour,MIN_RECEIVE_PROBABILITY} from '../public/passing.js';
 import {passingData} from '../passing-data.mjs';
 import {fileURLToPath} from 'node:url';
 const settings=JSON.parse(await readFile(new URL('../../notebooks/fitted/pitch_control_settings.json',import.meta.url))).settings;
@@ -14,7 +14,7 @@ test('specific receiver, excluded carrier, interceptions and unreachable destina
  assert.ok(clear.at(clear.receivers[0],q)>.8);
  assert.ok(blocked.at(blocked.receivers[0],q)<clear.at(clear.receivers[0],q));
  assert.ok(clear.at(clear.receivers[0],{x:-10,y:30})<MIN_RECEIVE_PROBABILITY);
- assert.equal(haloColour(.009999),null);assert.ok(haloColour(.01));assert.deepEqual(haloColour(1),[0,255,0,209]);
+ assert.equal(haloColour(.019999),null);assert.ok(haloColour(.02));assert.deepEqual(haloColour(1),[0,255,0,209]);
 });
 test('receiver motion changes reach and unknown possession produces no halo',()=>{
  const f=frame(),before=structuredClone(f),after=structuredClone(f);before.frame=8;after.frame=12;before.player_data[1].x=11;after.player_data[1].x=13;
@@ -30,4 +30,12 @@ test('real match physical data, runs and fitted settings feed a bounded grid',as
  const f=demo.frames.find(f=>f.possession?.player_id!=null),overlay=buildPassing(f,null,null,demo.metadata,model);
  assert.equal(overlay.reason,null);const grid=overlay.grid(2);
  assert.ok(grid.values.some(p=>p>0));assert.ok(grid.values.every(p=>p===0||p>=MIN_RECEIVE_PROBABILITY&&p<=1));
+});
+
+test('halo outlines follow individual masks without drawing internal cell edges',()=>{
+ assert.equal(haloBoundary(new Uint8Array([1]),1,1).length,4);
+ assert.equal(haloBoundary(new Uint8Array([1,1]),2,1).length,6);
+ assert.equal(haloBoundary(new Uint8Array([0,0]),2,1).length,0);
+ const ring=new Uint8Array([1,1,1,1,0,1,1,1,1]);
+ assert.equal(haloBoundary(ring,3,3).length,16,'include the inner interception hole');
 });
