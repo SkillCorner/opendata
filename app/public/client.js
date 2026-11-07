@@ -1,3 +1,4 @@
+import {SETTING_HELP,settingHelp} from './settings-help.js';
 import {buildIntegrity,integrityColour} from './integrity.js';
 import {PassPlayback} from './pass-playback.js';
 import {buildPassing,haloColour} from './passing.js';
@@ -89,12 +90,49 @@ function receivingOverlay(f){
 const say=s=>{$('status').textContent=s;$('viewerStatus').textContent=s;};
 function positionReceivingLegend(){
  const help=$('receivingHelp').getBoundingClientRect(),tip=$('receivingLegend'),box=tip.getBoundingClientRect();
- const left=Math.max(8,Math.min(help.left,window.innerWidth-box.width-8));
+ const left=Math.max(8,Math.min(help.left,(document.documentElement?.clientWidth??window.innerWidth)-box.width-8));
  const top=help.bottom+8+box.height<=window.innerHeight?help.bottom+8:Math.max(8,help.top-box.height-8);
  tip.style.left=`${left}px`;tip.style.top=`${top}px`;
 }
 $('receivingLegend').addEventListener('toggle',e=>{if(e.newState==='open')positionReceivingLegend();});
 window.addEventListener('resize',()=>{if($('receivingLegend').matches(':popover-open'))positionReceivingLegend();});
+let activeSettingHelp=null,helpPinned=false,helpCloseTimer;
+function updateSettingHelp(){
+ if(!activeSettingHelp)return;
+ const info=settingHelp(activeSettingHelp,$(activeSettingHelp).value,$('legacyDanger').checked);
+ $('settingHelpTitle').textContent=info.title;$('settingHelpText').textContent=info.text;
+}
+function positionSettingHelp(){
+ if(!activeSettingHelp)return;
+ const button=$('help-'+activeSettingHelp).getBoundingClientRect(),tip=$('settingTooltip'),box=tip.getBoundingClientRect();
+ let left=button.left-box.width-8;
+ if(left<8)left=Math.max(button.right,$(activeSettingHelp).getBoundingClientRect().right)+8;
+ left=Math.max(8,Math.min(left,(document.documentElement?.clientWidth??window.innerWidth)-box.width-8));
+ const top=Math.max(8,Math.min(button.top,(document.documentElement?.clientHeight??window.innerHeight)-box.height-8));
+ tip.style.left=`${left}px`;tip.style.top=`${top}px`;
+}
+function closeSettingHelp(){if(activeSettingHelp)$('help-'+activeSettingHelp).setAttribute('aria-expanded','false');const tip=$('settingTooltip');if(tip.matches(':popover-open'))tip.hidePopover();activeSettingHelp=null;helpPinned=false;}
+function openSettingHelp(id,pinned=false){
+ clearTimeout(helpCloseTimer);if(activeSettingHelp&&activeSettingHelp!==id)$('help-'+activeSettingHelp).setAttribute('aria-expanded','false');activeSettingHelp=id;$('help-'+id).setAttribute('aria-expanded','true');helpPinned=pinned;updateSettingHelp();
+ const tip=$('settingTooltip');if(!tip.matches(':popover-open'))tip.showPopover();positionSettingHelp();
+}
+function scheduleHelpClose(){
+ if(helpPinned)return;
+ helpCloseTimer=setTimeout(()=>{const tip=$('settingTooltip'),button=activeSettingHelp&&$('help-'+activeSettingHelp);if(!tip.matches(':hover')&&document.activeElement!==button)closeSettingHelp();},180);
+}
+for(const id of Object.keys(SETTING_HELP)){
+ const button=$('help-'+id);
+ button.setAttribute('aria-label','About '+SETTING_HELP[id].title);button.title='Explain '+SETTING_HELP[id].title;
+ button.onclick=event=>{event?.preventDefault?.();if(helpPinned&&activeSettingHelp===id){closeSettingHelp();}else openSettingHelp(id,true);};
+ button.onpointerenter=event=>{if(event.pointerType==='mouse'&&!helpPinned)openSettingHelp(id);};
+ button.onpointerleave=scheduleHelpClose;button.onfocus=()=>{if(!helpPinned)openSettingHelp(id);};button.onblur=scheduleHelpClose;
+ $(id).addEventListener('change',()=>{updateSettingHelp();if(activeSettingHelp)positionSettingHelp();});
+}
+$('settingTooltip').onpointerenter=()=>clearTimeout(helpCloseTimer);
+$('settingTooltip').onpointerleave=scheduleHelpClose;
+$('settingTooltip').addEventListener('toggle',e=>{if(e.newState==='closed'){if(activeSettingHelp)$('help-'+activeSettingHelp).setAttribute('aria-expanded','false');activeSettingHelp=null;helpPinned=false;}});
+window.addEventListener('resize',()=>{if(activeSettingHelp)positionSettingHelp();});
+window.addEventListener('scroll',()=>{if(activeSettingHelp)positionSettingHelp();},true);
 $('meshControls').open=false;
 $('meshControls').addEventListener('toggle',()=>requestAnimationFrame(draw));
 function showClipPanel(which){
@@ -292,7 +330,7 @@ requestAnimationFrame(tick);window.addEventListener('resize',draw);
 let tilingHalos=true,integrityHalos=false;
 function setViewMode(value){
  if(currentView===value)return;
- currentView=value;
+ closeSettingHelp();currentView=value;
  const enabled=currentView==='integrity';
  $('viewTiling').setAttribute('aria-pressed',String(!enabled));$('viewIntegrity').setAttribute('aria-pressed',String(enabled));
  if(enabled){tilingHalos=$('showReceiving').checked;$('showReceiving').checked=integrityHalos;}else{integrityHalos=$('showReceiving').checked;$('showReceiving').checked=tilingHalos;}
