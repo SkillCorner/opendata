@@ -1,4 +1,4 @@
-// Pitch Model Lab: pick a sequence, play it back, and compare v0 and v2 pitch control / EPV / gain surfaces.
+// Pitch Model Lab: pick a sequence, play it back, and compare v0 and v2 pitch control / EPV / gain / integrity surfaces.
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const getJSON = async url => { const r = await fetch(url); if (!r.ok) throw Error((await r.json().catch(() => ({}))).error || `HTTP ${r.status}`); return r.json(); };
@@ -16,7 +16,9 @@ const SCALES = {
   pc:   {map: v => RDBU(v), lo: '0 · defence', mid: '0.5', hi: '1 · attack', diff: 0.5},
   epv:  {map: v => MAGMA((Math.log(Math.max(v, 1e-4)) - EPV_LO) / (EPV_HI - EPV_LO)), lo: '0.018', mid: '0.05', hi: '0.15+ (log scale)', diff: 0.05},
   gain: {map: v => RDBU(0.5 + v / 0.12), lo: '−0.06 · loses value', mid: '0', hi: '+0.06 · gains', diff: 0.05},
+  integ: {map: v => RDBU(1 - v), lo: '0 · pass there gets through', mid: '0.5', hi: '1 · denied', diff: 0.5},
 };
+const PROTECT_OUT = -1, PROT_BEHIND_M = 5;   // same as model.js: cells outside the ball → goal zone, and where the zone starts
 const TEXT = {
   pc: {v0: ['v0 · literature settings', 'reaction 0.5 s · ground ball 15 m/s · σ 0.45 · lofted 12 m/s'],
        v2: ['v2 · fitted settings', 'reaction 0.10 s · ground ball 17.3 m/s · σ 0.62 · lofted 20 m/s · fitted on 15 matches']},
@@ -24,13 +26,15 @@ const TEXT = {
         v2: ['v2 · location + defensive context', '× pressure time, nearest defender, defenders goal-side']},
   gain: {v0: ['v0 · literature PC × location value', 'P_succ·V − (1−P_succ)·V_opp − V(ball)'],
          v2: ['v2 · fitted PC × context value', 'P_succ·V − (1−P_succ)·V_opp − V(ball)']},
+  integ: {v0: ['v0 · literature pitch control', '1 − P_succ from 5 m behind the ball to goal, weighted by V'],
+          v2: ['v2 · fitted pitch control', '1 − P_succ from 5 m behind the ball to goal, weighted by V']},
 };
 
 // ---------------- state ----------------
 const S = {
   models: null, matches: [], match: null, roster: new Map(), seq: null, filter: 'goal',
   clip: null,               // {id, frames, states, attTeam, flip, period}
-  res: {v0: [], v2: []}, vBall: {v0: [], v2: []}, clipId: 0,
+  res: {v0: [], v2: []}, vBall: {v0: [], v2: []}, integ: {v0: [], v2: []}, clipId: 0,
   i: 0, playing: false, speed: 1, acc: 0, last: 0,
   layer: 'pc', pcKind: 'att', view: 'side', single: 'v2', hover: null, panels: [],
 };
@@ -40,6 +44,13 @@ const N = 105 * 68, NX = 105, NY = 68;
 // ---------------- boot ----------------
 async function boot() {
   [S.models, S.matches] = await Promise.all([getJSON('data/models.json'), getJSON('data/matches.json')]);
+  const vl = S.models.value.V_loc, vmax = Math.max(...vl);
+  S.weight = Float32Array.from(vl, v => 0.25 + 0.75 * Math.sqrt(v / vmax));   // integrity map: fade space that counts little in I
+  $('#itrackCanvas').addEventListener('click', e => {
+    if (!S.clip) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    stop(); setIndex(Math.round((e.clientX - r.left) / r.width * (S.clip.frames.length - 1)));
+  });
   for (const v of ['v0', 'v2']) {
     const w = new Worker('worker.js', {type: 'module'});
     w.postMessage({type: 'init', models: S.models, version: v});
@@ -173,6 +184,7 @@ function setAttack(teamId) {
   c.states = buildStates(c.frames, teamId, c.flip);
   S.res = {v0: new Array(c.frames.length), v2: new Array(c.frames.length)};
   S.vBall = {v0: [], v2: []};
+  S.integ = {v0: new Array(c.frames.length).fill(null), v2: new Array(c.frames.length).fill(null)};
   for (const v of ['v0', 'v2']) {
     workers[v].postMessage({type: 'clip', clipId, states: c.states});
     workers[v].postMessage({type: 'focus', clipId, i: S.i});
@@ -213,7 +225,9 @@ function onResult(e) {
   if (m.clipId !== S.clipId) return;
   S.res[m.version][m.i] = m.q || 'empty';
   S.vBall[m.version][m.i] = m.vBall;
+  S.integ[m.version][m.i] = Number.isFinite(m.integrity) ? m.integrity : null;
   if (m.i === S.i) draw();
+  else if (S.layer === 'integ') drawTrack();
   progress();
 }
 function progress() {
@@ -308,7 +322,8 @@ const img = offCtx.createImageData(NX, NY);
 function field(ver, i) {
   const q = S.res[ver][i];
   if (!q || q === 'empty') return null;
-  const o = S.layer === 'pc' ? (S.pcKind === 'att' ? 0 : N) : S.layer === 'epv' ? 2 * N : 3 * N;
+  if (S.layer === 'integ') return k => q[4 * N + k] === PROTECT_OUT * 32767 ? NaN : q[4 * N + k] / 32767;
+  const o = S.layer === 'pc' ? (S.pcKind === 'att' ? 0 : N) : S.layer === 'epv' ? 2 * N : S.layer === 'gain' ? 3 * N : 4 * N;
   return k => q[o + k] / 32767;
 }
 function paintSurface(ctx, p, get) {
@@ -316,7 +331,12 @@ function paintSurface(ctx, p, get) {
   for (let r = 0; r < NY; r++) for (let ix = 0; ix < NX; ix++) {
     const iy = NY - 1 - r, kRaw = iy * NX + ix, k = flip ? N - 1 - kRaw : kRaw;
     const v = get(k);
-    const [R, G, B] = p.diff ? PUOR(0.5 + v / (2 * sc.diff)) : sc.map(v);
+    let R, G, B;
+    if (Number.isNaN(v)) [R, G, B] = OUT_RGB;          // integrity layer: outside the ball → goal zone
+    else {
+      [R, G, B] = p.diff ? PUOR(0.5 + v / (2 * sc.diff)) : sc.map(v);
+      if (S.layer === 'integ' && !p.diff) { const w = S.weight[k]; R = BG_RGB[0] + (R - BG_RGB[0]) * w; G = BG_RGB[1] + (G - BG_RGB[1]) * w; B = BG_RGB[2] + (B - BG_RGB[2]) * w; }
+    }
     const o = (r * NX + ix) * 4; img.data[o] = R; img.data[o + 1] = G; img.data[o + 2] = B; img.data[o + 3] = 255;
   }
   offCtx.putImageData(img, 0, 0);
@@ -324,6 +344,7 @@ function paintSurface(ctx, p, get) {
   const [x, y] = toPx(p, -52.5, 34);
   ctx.drawImage(off, x, y, 105 * p.scale, 68 * p.scale);
 }
+const BG_RGB = [233, 236, 228], OUT_RGB = [214, 216, 210];
 const toPx = (p, x, y) => [(x - WORLD.x0) * p.scale, (WORLD.y1 - y) * p.scale];
 
 function draw() {
@@ -338,13 +359,67 @@ function draw() {
     else get = field(p.ver, S.i);
     if (get) paintSurface(ctx, p, get);
     drawPitch(ctx, p);
+    if (S.layer === 'integ' && fr.b) drawZone(ctx, p, fr);
     drawPlayers(ctx, p, fr);
     if (S.hover) crosshair(ctx, p);
     if (!get) { ctx.fillStyle = 'rgba(29,31,34,.7)'; ctx.font = `${12 * p.scale / 6}px system-ui`; ctx.fillText(fr.b ? 'computing…' : 'ball not tracked in this frame', 10 * p.scale / 6, 18 * p.scale / 6); }
-    const vb = p.diff ? null : S.vBall[p.ver][S.i];
-    p.vball.textContent = (S.layer !== 'pc' && vb != null) ? `V(ball) ${vb.toFixed(3)}` : '';
+    p.vball.classList.toggle('score', S.layer === 'integ');
+    if (S.layer === 'integ') {
+      const I = ver => S.integ[ver][S.i], fmt = x => x == null ? '…' : x.toFixed(2);
+      p.vball.textContent = p.diff ? (I('v0') != null && I('v2') != null ? `ΔI ${(I('v2') - I('v0') >= 0 ? '+' : '−')}${Math.abs(I('v2') - I('v0')).toFixed(2)}` : '')
+        : `I ${fmt(I(p.ver))}`;
+    } else {
+      const vb = p.diff ? null : S.vBall[p.ver][S.i];
+      p.vball.textContent = (S.layer !== 'pc' && vb != null) ? `V(ball) ${vb.toFixed(3)}` : '';
+    }
   }
+  drawTrack();
   readout();
+}
+// integrity zone: from 5 m behind the ball (in the attacking direction) to the goal line
+function drawZone(ctx, p, fr) {
+  const sgn = S.clip.flip ? -1 : 1, edge = (fr.b[0] * sgn - PROT_BEHIND_M) * sgn, hw = S.match.pitch[1] / 2;
+  if (Math.abs(edge) > 52.5) return;
+  ctx.save(); ctx.strokeStyle = 'rgba(17,17,17,.75)'; ctx.lineWidth = Math.max(1, p.scale * 0.2); ctx.setLineDash([p.scale * 1.2, p.scale * 0.8]);
+  ctx.beginPath(); ctx.moveTo(...toPx(p, edge, hw)); ctx.lineTo(...toPx(p, edge, -hw)); ctx.stroke(); ctx.restore();
+}
+// integrity over the whole clip, both versions, with the playhead and the sequence's actions
+function drawTrack() {
+  const box = $('#itrack');
+  box.hidden = S.layer !== 'integ' || !S.clip;
+  if (box.hidden) return;
+  const c = $('#itrackCanvas'), dpr = Math.min(2, window.devicePixelRatio || 1);
+  const W = Math.round((c.clientWidth || 600) * dpr), H = Math.round(90 * dpr);
+  if (c.width !== W || c.height !== H) { c.width = W; c.height = H; }
+  const ctx = c.getContext('2d'), n = S.clip.frames.length, css = getComputedStyle(document.documentElement);
+  const ink = css.getPropertyValue('--muted').trim() || '#62666d', line = css.getPropertyValue('--line').trim() || '#dcdad3';
+  const padL = 30 * dpr, padR = 6 * dpr, padT = 6 * dpr, padB = 14 * dpr;
+  const X = i => padL + (W - padL - padR) * i / Math.max(1, n - 1), Y = v => padT + (H - padT - padB) * (1 - v);
+  ctx.clearRect(0, 0, W, H);
+  ctx.font = `${10 * dpr}px system-ui`; ctx.fillStyle = ink; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  ctx.strokeStyle = line; ctx.lineWidth = dpr;
+  for (const v of [0, 0.5, 1]) { ctx.beginPath(); ctx.moveTo(padL, Y(v)); ctx.lineTo(W - padR, Y(v)); ctx.stroke(); ctx.fillText(v.toFixed(1), padL - 5 * dpr, Y(v)); }
+  // action markers from the sequence
+  if (S.seq) {
+    const first = S.clip.frames[0].f, last = S.clip.frames[n - 1].f;
+    for (const ps of S.seq.possessions) {
+      if (ps.start < first || ps.start > last) continue;
+      const x = X((ps.start - first) / Math.max(1, last - first) * (n - 1));
+      ctx.strokeStyle = ps.end_type === 'shot' ? '#c97a12' : line; ctx.lineWidth = (ps.end_type === 'shot' ? 2 : 1) * dpr;
+      ctx.beginPath(); ctx.moveTo(x, padT); ctx.lineTo(x, H - padB); ctx.stroke();
+    }
+  }
+  for (const [ver, col, dash] of [['v0', '#9a9a9a', [4 * dpr, 3 * dpr]], ['v2', '#1a9850', []]]) {
+    ctx.strokeStyle = col; ctx.lineWidth = (ver === 'v2' ? 2 : 1.5) * dpr; ctx.setLineDash(dash); ctx.beginPath();
+    let pen = false;
+    S.integ[ver].forEach((v, i) => { if (v == null) { pen = false; return; } pen ? ctx.lineTo(X(i), Y(v)) : ctx.moveTo(X(i), Y(v)); pen = true; });
+    ctx.stroke(); ctx.setLineDash([]);
+  }
+  ctx.strokeStyle = css.getPropertyValue('--ink').trim() || '#1d1f22'; ctx.lineWidth = 1.5 * dpr;
+  ctx.beginPath(); ctx.moveTo(X(S.i), padT); ctx.lineTo(X(S.i), H - padB); ctx.stroke();
+  const done = ['v0', 'v2'].map(v => S.integ[v].filter(x => x != null).length);
+  ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = ink;
+  ctx.fillText(done.every(d => d >= n - S.clip.frames.filter(f => !f.b).length) ? 'click to jump' : 'filling in as the models compute…', padL, H - 2 * dpr);
 }
 function drawPitch(ctx, p) {
   const [L, Wd] = S.match.pitch, hl = L / 2, hw = Wd / 2, s = p.scale;
@@ -399,7 +474,12 @@ function hover(e, canvas) {
 }
 function readout() {
   const cells = $$('#readout td');
-  if (!S.hover || !S.clip) { cells.forEach(c => c.textContent = ''); $('#readoutCap').textContent = 'Hover over a pitch to compare v0 and v2 at one spot'; return; }
+  if (!S.hover || !S.clip) {
+    cells.forEach(c => c.textContent = '');
+    if (S.clip) for (const v of ['v0', 'v2']) { const I = S.integ[v][S.i]; $(`#readout td[data-k="${v}-I"]`).textContent = I == null ? '—' : I.toFixed(2); }
+    $('#readoutCap').textContent = 'Hover over a pitch to compare v0 and v2 at one spot';
+    return;
+  }
   const sgn = S.clip.flip ? -1 : 1, ax = S.hover.x * sgn, ay = S.hover.y * sgn;
   const k = Math.min(NY - 1, Math.max(0, Math.round(ay + 33.5))) * NX + Math.min(NX - 1, Math.max(0, Math.round(ax + 52)));
   for (const v of ['v0', 'v2']) {
@@ -408,6 +488,8 @@ function readout() {
       const td = $(`#readout td[data-k="${v}-${j}"]`);
       td.textContent = q && q !== 'empty' ? (q[j * N + k] / 32767).toFixed(j < 2 ? 2 : 3) : '—';
     }
+    const I = S.integ[v][S.i];
+    $(`#readout td[data-k="${v}-I"]`).textContent = I == null ? '—' : I.toFixed(2);
   }
   const fr = S.clip.frames[S.i];
   let best = null, bd = Infinity;
@@ -421,13 +503,14 @@ function renderLegend() {
   const ctx = c.getContext('2d');
   for (let x = 0; x < 240; x++) {
     const t = x / 239;
-    const rgb = diff ? PUOR(t) : S.layer === 'pc' ? RDBU(t) : S.layer === 'gain' ? RDBU(t) : MAGMA(t);
+    const rgb = diff ? PUOR(t) : S.layer === 'pc' || S.layer === 'gain' ? RDBU(t) : S.layer === 'integ' ? RDBU(1 - t) : MAGMA(t);
     ctx.fillStyle = `rgb(${rgb.map(Math.round).join(',')})`; ctx.fillRect(x, 0, 1, 12);
   }
   const lab = diff ? [`−${sc.diff}`, '0', `+${sc.diff}`] : [sc.lo, sc.mid, sc.hi];
   $('#legend').innerHTML = `<span>${lab[0]}</span><span id="lg"></span><span>${lab[2]}</span>
     <span class="key"><span class="dot" style="background:var(--attack)"></span>attacking</span>
     <span class="key"><span class="dot" style="background:var(--defend)"></span>defending</span>
+    ${S.layer === 'integ' ? `<span class="key">grey = outside the zone · dashed line = zone starts 5 m behind the ball · faint = space worth little, counts less in I</span>` : ''}
     <span class="key">dashed ring = position estimated off camera · line = run over the next second</span>`;
   $('#lg').replaceWith(c);
 }

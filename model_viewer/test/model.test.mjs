@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {createModel} from '../public/model.js';
+import {createModel, PROT_BEHIND_M, PROTECT_OUT} from '../public/model.js';
 
 const models = JSON.parse(readFileSync(new URL('../data/models.json', import.meta.url)));
 const cases = JSON.parse(readFileSync(new URL('./fixtures.json', import.meta.url)));
@@ -33,5 +33,29 @@ for (const c of cases) {
       assert.ok(worst.value < 1e-6 && worst.gain < 1e-6, 'value and gain');
       assert.ok(Math.abs(out.vBall - ref.v_ball) < 1e-6, 'ball value');
     });
+
+    test(`frame ${c.frame} ${version} integrity follows the notebook's protection definition`, () => {
+      const out = model.compute(toState(c), version), V = model.V_LOC;
+      let num = 0, den = 0;
+      for (let k = 0; k < model.N; k++) {
+        const inZone = model.cellX[k] >= c.ball[0] - PROT_BEHIND_M;
+        if (inZone) {
+          num += V[k] * (1 - out.pSucc[k]); den += V[k];
+          assert.equal(out.protect[k], 1 - out.pSucc[k]);
+        } else assert.equal(out.protect[k], PROTECT_OUT);
+      }
+      assert.ok(Math.abs(out.integrity - num / den) < 1e-12);
+      assert.ok(out.integrity > 0 && out.integrity < 1);
+      // the same, from the Python P_succ fixture (every 7th cell): a check against the notebook's own numbers
+      let pn = 0, pd = 0, jn = 0, jd = 0;
+      ref(c, version).cells.forEach((k, j) => {
+        if (model.cellX[k] < c.ball[0] - PROT_BEHIND_M) return;
+        pn += V[k] * (1 - ref(c, version).p_succ[j]); pd += V[k];
+        jn += V[k] * (1 - out.pSucc[k]); jd += V[k];
+      });
+      assert.ok(Math.abs(pn / pd - jn / jd) < 1e-5, 'sampled integrity agrees with Python P_succ');
+    });
   }
 }
+
+function ref(c, version) { return c[version]; }

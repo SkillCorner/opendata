@@ -10,7 +10,7 @@
 <header class="top">
   <div>
     <h1>Pitch Model Lab</h1>
-    <p class="sub">v0 vs v2 pitch control and EPV · SkillCorner open data, A-League 2024/25 · 10 Hz</p>
+    <p class="sub">v0 vs v2 pitch control, EPV and defensive integrity · SkillCorner open data, A-League 2024/25 · 10 Hz</p>
   </div>
   <button id="aboutBtn" class="ghost" aria-expanded="false" aria-controls="about">About the models</button>
 </header>
@@ -32,6 +32,8 @@
     <p><b>Pitch control</b>: chance the attacking team gets to the ball first (P<sub>att</sub>) or that a pass there is completed
     (P<sub>succ</sub>, with interception along the path and the lofted option). <b>EPV</b>: value of having the ball at each spot.
     <b>Gain</b>: P<sub>succ</sub>·V − (1−P<sub>succ</sub>)·V<sub>opp</sub> − V(ball), what a pass there is worth.
+    <b>Integrity</b>: how well the defence denies passes into the space from 5 m behind the ball to goal,
+    I = Σ V·(1−P<sub>succ</sub>) / Σ V. The map shows 1−P<sub>succ</sub> in that zone, faded where the space is worth little.
     Surfaces are always from the attacking team's point of view.</p>
   </div>
   <div>
@@ -73,6 +75,7 @@
         <button data-v="pc" role="radio">Pitch control</button>
         <button data-v="epv" role="radio">EPV</button>
         <button data-v="gain" role="radio">Gain</button>
+        <button data-v="integ" role="radio" title="How well the defence denies passes into the valuable space between the ball and goal">Integrity</button>
       </div>
       <div class="seg" id="pcKind" role="radiogroup" aria-label="Pitch control measure">
         <button data-v="att" role="radio" title="Chance the attack reaches the ball first">P<sub>att</sub></button>
@@ -113,13 +116,20 @@
       </div>
       <span id="clock" class="clock">—</span>
     </div>
+    <div class="itrack" id="itrack" hidden>
+      <div class="itrackHead">
+        <span><b>Integrity I over the clip</b> · 1 = every valuable pass towards goal denied</span>
+        <span class="key"><i class="ln v0"></i>v0</span><span class="key"><i class="ln v2"></i>v2</span>
+      </div>
+      <canvas id="itrackCanvas" aria-label="Integrity of the defending team over the clip"></canvas>
+    </div>
     <div class="status"><span id="status"></span><span id="progress"></span></div>
 
     <table class="readout" id="readout" aria-live="polite">
-      <thead><tr><th>At cursor</th><th>P<sub>att</sub></th><th>P<sub>succ</sub></th><th>V</th><th>Gain</th></tr></thead>
+      <thead><tr><th>At cursor</th><th>P<sub>att</sub></th><th>P<sub>succ</sub></th><th>V</th><th>Gain</th><th title="Integrity of the whole frame, not the cell">I (frame)</th></tr></thead>
       <tbody>
-        <tr><th>v0</th><td data-k="v0-0"></td><td data-k="v0-1"></td><td data-k="v0-2"></td><td data-k="v0-3"></td></tr>
-        <tr><th>v2</th><td data-k="v2-0"></td><td data-k="v2-1"></td><td data-k="v2-2"></td><td data-k="v2-3"></td></tr>
+        <tr><th>v0</th><td data-k="v0-0"></td><td data-k="v0-1"></td><td data-k="v0-2"></td><td data-k="v0-3"></td><td data-k="v0-I"></td></tr>
+        <tr><th>v2</th><td data-k="v2-0"></td><td data-k="v2-1"></td><td data-k="v2-2"></td><td data-k="v2-3"></td><td data-k="v2-I"></td></tr>
       </tbody>
       <caption id="readoutCap">Hover over a pitch</caption>
     </table>

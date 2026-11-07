@@ -10,6 +10,8 @@ const clip = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 // numpy rounds halves to the nearest even integer; match it so grid lookups agree exactly
 const roundHalfEven = v => { const r = Math.round(v); return Math.abs(v % 1) === 0.5 && r % 2 !== 0 ? r - 1 : r; };
 const FRACS = Array.from({length: 8}, (_, i) => 0.15 + i * (0.75 / 7));   // np.linspace(0.15, 0.9, 8)
+export const PROT_BEHIND_M = 5;     // the protection zone starts 5 m behind the ball (notebook: CELLS[:, 0] >= ball[0] - 5)
+export const PROTECT_OUT = -1;      // marks cells outside the protection zone
 
 export function createModel(models) {
   const {x0, y0, nx, ny, half_l: HALF_L} = models.grid;
@@ -124,7 +126,8 @@ export function createModel(models) {
    * Compute one model version for one frame.
    * s: {n, x, y, vx, vy, vmax, amax, att, ball:[x, y]} in the attacking frame.
    * version: 'v0' (literature settings, location-only value) or 'v2' (fitted settings, context value).
-   * Returns Float64Arrays over the 105 × 68 grid (row = y): pAtt, pSucc, value, gain; and vBall.
+   * Returns Float64Arrays over the 105 × 68 grid (row = y): pAtt, pSucc, value, gain, protect;
+   * and two numbers: vBall, integrity.
    */
   function compute(s, version) {
     const set = models.settings[version];
@@ -141,7 +144,26 @@ export function createModel(models) {
       vBall = contextValueAt(s, s.ball[0], s.ball[1], tb, V_LOC[lookup(s.ball[0], s.ball[1])]);
     }
     for (let k = 0; k < N; k++) gain[k] = pSucc[k] * value[k] - (1 - pSucc[k]) * V_OPP[k] - vBall;
-    return {pAtt, pSucc, value, gain, vBall};
+    const {protect, integrity} = protection(s, pSucc, version);
+    return {pAtt, pSucc, value, gain, vBall, protect, integrity};
+  }
+
+  /**
+   * Integrity I = protection (Section 5 of the notebook, definition chosen in Section 8b):
+   * how well the defence denies passes into the valuable space between the ball and goal.
+   *   zone: cells at most 5 m behind the ball, up to the goal line ("ballgoal")
+   *   I = Σ_zone V_loc · (1 − P_succ) / Σ_zone V_loc
+   * Both versions weight by the location value V_loc, as the notebook does; only P_succ differs.
+   * protect[k] = 1 − P_succ inside the zone, PROTECT_OUT outside it.
+   */
+  function protection(s, pSucc, key) {
+    const protect = buf(key + ':protect', N), x0 = s.ball[0] - PROT_BEHIND_M;
+    let num = 0, den = 0;
+    for (let k = 0; k < N; k++) {
+      if (CX[k] >= x0) { const deny = 1 - pSucc[k]; protect[k] = deny; num += V_LOC[k] * deny; den += V_LOC[k]; }
+      else protect[k] = PROTECT_OUT;
+    }
+    return {protect, integrity: den > 0 ? num / den : NaN};
   }
 
   return {compute, grid: models.grid, N, cellX: CX, cellY: CY, lookup, V_LOC};

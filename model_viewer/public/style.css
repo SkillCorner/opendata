@@ -72,6 +72,7 @@ select, input { background: var(--surface); border: 1px solid var(--line); borde
 .pitchCard p { margin: 1px 0 8px; font-size: 12px; color: var(--muted); }
 .pitchCard canvas { display: block; width: 100%; max-width: 100%; height: auto; border-radius: 6px; touch-action: pan-y; }
 .pitchCard .vball { float: right; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.pitchCard .vball.score { font-size: 15px; font-weight: 700; color: var(--ink); }
 
 .legend { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
 .legend canvas { width: 240px; height: 12px; border-radius: 3px; border: 1px solid var(--line); }
@@ -79,6 +80,15 @@ select, input { background: var(--surface); border: 1px solid var(--line); borde
 .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; border: 1px solid rgba(0,0,0,.4); }
 
 .player { display: flex; align-items: center; gap: 8px; }
+.itrack { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 10px 6px; }
+.itrack[hidden] { display: none; }
+.itrackHead { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.itrackHead b { color: var(--ink); font-weight: 600; }
+.itrackHead .key { display: inline-flex; align-items: center; gap: 5px; }
+.itrackHead .ln { display: inline-block; width: 16px; height: 0; border-top: 2px solid; }
+.itrackHead .ln.v0 { border-color: #9a9a9a; border-top-style: dashed; }
+.itrackHead .ln.v2 { border-color: #1a9850; }
+.itrack canvas { display: block; width: 100%; height: 90px; cursor: pointer; }
 .scrub { position: relative; flex: 1; min-width: 120px; }
 .scrub input { width: 100%; padding: 0; border: 0; accent-color: var(--accent); }
 .ticks { position: absolute; left: 8px; right: 8px; top: -6px; height: 6px; pointer-events: none; }
