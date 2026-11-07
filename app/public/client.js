@@ -53,7 +53,7 @@ function centerInitialMobileMesh(){
 async function get(url){const r=await fetch(url);const data=await r.json();if(!r.ok)throw Error(data.error||'Request failed');return data;}
 function configure(m){meta=m;$('title').textContent=`${m.home_team.name} vs ${m.away_team.name}`;$('dimensions').textContent=`${m.pitch_length} × ${m.pitch_width} m`;$('team').replaceChildren(new Option('Both teams','all'),new Option(m.home_team.name,String(m.home_team.id)),new Option(m.away_team.name,String(m.away_team.id)));}
 function install(data){$('startupLoading').hidden=true;$('play').disabled=false;$('scrub').disabled=false;loadedChance=null;frames=data;index=0;playing=false;$('play').textContent='▶ Play';$('scrub').max=frames.length-1;selected=null;draw();}
-async function demo(){const token=++request;try{const d=await get('/demo.json');if(token!==request)return;configure(d.metadata);passingData=await get(`/api/matches/${d.metadata.id}/passing`).catch(()=>null);if(token!==request)return;install(d.frames);$('context').textContent='Bundled opening clip · real tracking · stadium orientation';say('Demo ready. Select a match and phase to explore another clip.');}catch(e){say(e.message);}}
+async function demo(){const token=++request;try{const d=await get('/demo.json');if(token!==request)return;configure(d.metadata);passingData=await get(`/api/matches/${d.metadata.id}/passing`).catch(()=>null);if(token!==request)return;install(d.frames);say('Demo ready. Select a match and phase to explore another clip.');}catch(e){say(e.message);}}
 function teamColour(team){return teamScaleColour(team,meta,frames[index]?.period);}
 function drawSoccerBall(x,y,tint,detected){
  const r=4.6;
@@ -191,7 +191,6 @@ async function loadClip(chance=null){
  try{const m=(pendingMeta?.id===Number(id)?pendingMeta:null)??await get(`/api/matches/${id}/metadata`);
  const query=chance?`start=${chance.startFrame}&count=${chance.count}&end=${chance.endFrame}&period=${chance.period}`:`start=${encodeURIComponent($('start').value)}&count=${Number($('duration').value)*10}`;
  const [data,model]=await Promise.all([get(`/api/matches/${id}/clip?${query}`),get(`/api/matches/${id}/passing`).catch(()=>null)]);if(token!==request)return;configure(m);passingData=model;install(data);loadedChance=chance;
- $('context').textContent=chance?chanceLabel(chance):`Match ${id} · ${$('phase').selectedOptions[0]?.textContent??'Custom clip'} · stadium orientation`;
  draw();
  if(chance){const covers=data[0].frame<=chance.anchorFrame&&data.at(-1).frame>=chance.anchorFrame;const exact=data.some(f=>f.frame===chance.anchorFrame);say(covers?`Chance ready · ${data.length} frames${exact?'':' · exact outcome frame missing; surrounding tracking shown'}.`:'Tracking does not cover the outcome marker for this chance.');canvas.scrollIntoView({block:'center',behavior:'smooth'});}
  else say(`Ready · ${data.length} frames. Dashed marks indicate estimates.`);
