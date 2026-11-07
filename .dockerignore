@@ -1,0 +1,7 @@
+.git
+node_modules
+analysis_cache
+*.ipynb
+assets
+viz_tools
+data/bodypose

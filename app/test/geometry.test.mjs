@@ -1,0 +1,10 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import vm from 'node:vm';
+import {vertices,area,inside} from '../public/geometry.js';
+const demo=JSON.parse(await readFile(new URL('../public/demo.json',import.meta.url),'utf8'));
+const sandbox={};vm.runInNewContext(await readFile(new URL('../public/d3-delaunay.min.js',import.meta.url),'utf8'),sandbox);
+test('real demo resolves 22 players and exactly one ball in all frames',()=>{for(const f of demo.frames){const points=vertices(f,demo.metadata);assert.equal(points.length,23);assert.equal(points.filter(p=>p.id==='ball').length,1);assert.ok(points.every(p=>p.name));}});
+test('mesh has finite areas and recovers convex hull area',()=>{for(const f of demo.frames.filter((_,i)=>i%30===0)){const pts=vertices(f,demo.metadata);const d=sandbox.d3.Delaunay.from(pts,p=>p.x,p=>p.y);let total=0;for(let i=0;i<d.triangles.length;i+=3){const t=Array.from(d.triangles.slice(i,i+3),i=>pts[i]);const a=area(...t);assert.ok(a>0);total+=a;assert.ok(inside({x:t.reduce((s,p)=>s+p.x,0)/3,y:t.reduce((s,p)=>s+p.y,0)/3},...t));}const hull=Array.from(d.hull,i=>pts[i]);let sum=0;hull.forEach((p,i)=>{const q=hull[(i+1)%hull.length];sum+=p.x*q.y-q.x*p.y;});assert.ok(Math.abs(total-Math.abs(sum)/2)<1e-6);}});
+test('quality/team filters and coincident identity preservation',()=>{const f=demo.frames[0];assert.equal(vertices(f,demo.metadata,{ball:false}).length,22);assert.equal(vertices(f,demo.metadata,{team:String(demo.metadata.home_team.id),ball:false}).length,11);assert.ok(vertices(f,demo.metadata,{detectedOnly:true}).every(p=>p.is_detected));const copy=structuredClone(f);copy.ball_data.x=copy.player_data[0].x;copy.ball_data.y=copy.player_data[0].y;const pts=vertices(copy,demo.metadata);assert.equal(pts.length,22);assert.ok(pts.some(p=>p.members.length===2));});
