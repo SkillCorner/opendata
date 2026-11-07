@@ -41,13 +41,13 @@ function drawPassAdvice(px){
  const opts=recommendation.options,maximum=Math.max(...opts.map(o=>o.gain)),minimum=Math.min(...opts.map(o=>o.gain));
  ctx.save();ctx.globalAlpha=opacity;
  for(let i=opts.length-1;i>=0;i--){const o=opts[i],t=maximum===minimum?1:(o.gain-minimum)/(maximum-minimum),[x,y]=px(o.x,o.y),[bx,by]=px(recommendation.ball.x,recommendation.ball.y);
-  ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(x,y);ctx.setLineDash([8,6]);ctx.strokeStyle='#ffffff';ctx.lineWidth=3;ctx.stroke();
+  ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(x,y);ctx.setLineDash([8,6]);ctx.strokeStyle=i===0?'#ffd34d':'#ffffff';ctx.lineWidth=3;ctx.stroke();
   const shade=Math.round(165*(1-t));ctx.strokeStyle=`rgb(${shade},${shade},${shade})`;ctx.lineWidth=1.8;ctx.stroke();ctx.setLineDash([]);
-  const angle=Math.atan2(y-by,x-bx);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-8*Math.cos(angle-.45),y-8*Math.sin(angle-.45));ctx.moveTo(x,y);ctx.lineTo(x-8*Math.cos(angle+.45),y-8*Math.sin(angle+.45));ctx.stroke();
-  ctx.beginPath();ctx.arc(x,y,9,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle='#142128';ctx.lineWidth=1;ctx.stroke();ctx.fillStyle='#08191d';ctx.font='bold 11px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(String(i+1),x,y);
+  const angle=Math.atan2(y-by,x-bx);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-11*Math.cos(angle-.45),y-11*Math.sin(angle-.45));ctx.lineTo(x-11*Math.cos(angle+.45),y-11*Math.sin(angle+.45));ctx.closePath();
+  ctx.fillStyle=`rgb(${shade},${shade},${shade})`;ctx.fill();ctx.strokeStyle=i===0?'#ffd34d':'#ffffff';ctx.lineWidth=1.5;ctx.stroke();
  }
  ctx.restore();
- $('passAdvice').textContent=`${performance.now()<passPlayback.until?'Pass preview · 1 s pause':'Pass in flight'} · darker = higher net EPV gain · ${opts.map((o,i)=>`${i+1}. ${o.name} ${o.gain>=0?'+':''}${o.gain.toFixed(3)}`).join(' · ')}${opts.length<5?` · ${opts.length} distinct available options`:''} · ${recommendation.source}`;
+ $('passAdvice').textContent=`${performance.now()<passPlayback.until?'Pass preview · 1 s pause':'Pass in flight'} · gold = best · darker = higher net EPV gain · fades during first 60% of flight · ${opts.map((o,i)=>`${i===0?'★ ':''}${o.name} ${o.gain>=0?'+':''}${o.gain.toFixed(3)}`).join(' · ')}${opts.length<5?` · ${opts.length} distinct available options`:''} · ${recommendation.source}`;
 }
 function renderIntegrity(f,px,L,W,scale,poly){
  const model=currentIntegrity(f),kind=$('integrityColour').value;

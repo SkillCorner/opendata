@@ -46,11 +46,13 @@ tracked off-ball teammates provide fallback options, explicitly labelled in the 
 
 Dashed arrow geometry stays frozen through the next possession start, including
 interception or unsuccessful passes. The slimmer lines ease out as the ball travels:
-opacity = min(1, 1.2 × (1 − smoothstep(pass progress))). The 20% boost is capped at
-full opacity; the one-second preview stays fully opaque and completion is transparent. Playback clamps to that completion frame before removing
-the overlay, even at high speed or across skipped render frames. A white casing
-keeps arrows visible; the inner dashed line is darker for higher-value passes.
-Numbers and net EPV gains accompany the arrows. Negative gains remain labelled as
+opacity = min(1, 1.2 × (1 − smoothstep(min(1, pass progress / 0.6)))). The 20% boost is capped at
+full opacity; the one-second preview stays fully opaque and arrows are transparent
+by 60% of flight. Playback clamps to that completion frame before removing
+the overlay, even at high speed or across skipped render frames. A gold casing marks the best recommendation; other arrows have white casings.
+Darker inner dashes mean higher-value passes. Filled arrowheads replace numbered
+endpoint circles; a gold star identifies the best option in the text summary.
+Net EPV gains accompany the arrows. Negative gains remain labelled as
 negative, even for the best available pass. Scrubbing clears the overlay and seeks
 the event controller; replay resets the one-time pause history.
 

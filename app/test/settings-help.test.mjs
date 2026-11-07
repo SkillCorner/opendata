@@ -22,6 +22,11 @@ test('colour explanations distinguish all current calculations and the legacy ov
 });
 
 test('calculation tooltips include equations and keep explanations short',()=>{
- for(const value of ['control','danger','pass','tiles']){const h=settingHelp('integrityColour',value);assert.ok(h.equation.includes('='));assert.ok(h.text.split(/\s+/).length<=40);}
+ for(const value of ['control','danger','pass','tiles']){const h=settingHelp('integrityColour',value);assert.ok(h.equation.includes('='));assert.ok(h.text.split(/\s+/).length<=45);}
  for(const id of ['integrityConnections','integrityTiles','integrityMarking','integrityFacing'])assert.ok(settingHelp(id).equation);
+});
+
+test('pass-related help explains gold arrows and the faster fade',()=>{
+ for(const id of ['viewIntegrity','chance','speed']){const text=settingHelp(id).text;assert.match(text,/gold/i);assert.match(text,/60%/);}
+ const text=settingHelp('integrityColour','pass').text;assert.match(text,/gold outline/);assert.match(text,/60%/);
 });

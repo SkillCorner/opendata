@@ -1,6 +1,6 @@
 const legacy={title:'Legacy definition',text:'Original, unfitted danger proxy: goal distance and angle, defensive pressure, reach and interception. Blue/red identify attacking directions. Recommendations still use the notebook model.',equation:'D = Σ sign × possession × lane safety × readiness × control × V'};
 export const SETTING_HELP={
- viewIntegrity:{title:'Defensive Integrity',text:'Fitted notebook model. Pitch control: blue = defence, red = attack. Danger and pass value: blue = loss of EPV, red = gain. Defensive tiles: red = weak, green = strong.'},
+ viewIntegrity:{title:'Defensive Integrity',text:'Fitted notebook model. Pitch control: blue = defence, red = attack. Danger and pass value: blue = loss of EPV, red = gain. Defensive tiles: red = weak, green = strong. Pass arrows: gold outline = best; darker = higher gain. Fade ends at 60% of flight.'},
  mode:{title:'Geometry',text:'Delaunay connects nearby sites into triangles. Voronoi assigns each location to its nearest site. Both describe spacing, not pass probability.'},
  team:{title:'Players',text:'Filters player markers and sites in Pitch Tiling. Changes the mesh, while scoring models continue to use both teams.'},
  colour:{title:'Triangle colour'},
@@ -16,11 +16,11 @@ export const SETTING_HELP={
  detected:{title:'Detected positions only',text:'Hides estimated markers and original mesh sites. Scoring models still include estimated players and their influence.'},
  match:{title:'Match',text:'Chooses the match’s chance list and phases. Select a chance or load a custom clip to update the pitch.'},
  chanceFilter:{title:'Chance filter',text:'High EPV: confirmed goals or peak possession EPV ≥ 0.10. Goals: confirmed goals only. All: every recorded shot/goal. EPV is not shot xG.'},
- chance:{title:'Danger chances',text:'Loads about 20 s before a shot/goal and 8 s afterwards, bounded to the half. Pass recommendations pause playback for 1 real second at release.'},
+ chance:{title:'Danger chances',text:'Loads about 20 s before a shot/goal and 8 s afterwards, bounded to the half. Pass previews pause for 1 real second. Gold outline = best; darker = higher gain. Arrows fade out by 60% of flight.'},
  phase:{title:'Phase of play',text:'Uses a recorded tactical phase’s start frame. Press “Load tracking clip” to apply the selected start and duration.'},
  start:{title:'Start frame',text:'First source frame for a custom clip. Tracking is 10 frames/s. Press “Load tracking clip” to apply.'},
  duration:{title:'Clip length',text:'Custom clip length: 15, 30 or 60 s. Recorded chance clips use their own interval. Press “Load tracking clip” to apply.',equation:'Frames = seconds × 10'},
- speed:{title:'Playback speed',text:'Changes tracking speed. Pass previews still pause for 1 real second. Dashed recommendations fade as the pass completes.'}
+ speed:{title:'Playback speed',text:'Changes tracking speed; pass previews pause for 1 real second. Gold-outlined arrow = best recommendation; darker = higher value. Arrows fade out during the first 60% of flight at any speed.'}
 };
 const tilingColours={
  area:{title:'Triangle area',text:'Teal for small triangles, amber for large ones. Measures spacing in m², not defensive quality.',equation:'A = |(x₂−x₁)(y₃−y₁) − (y₂−y₁)(x₃−x₁)| / 2'},
@@ -31,7 +31,7 @@ const tilingColours={
 const integrityColours={
  control:{title:'Pitch control',text:'Fitted arrival-time race: speed, acceleration, movement, reaction, turning and ball travel. Blue: defence; white: 50%; red: attack. Does not deduct lane interceptions.',equation:'P_att = logistic(k(ẽ_def − ẽ_att))\nẽ = max(t_player, t_ball) + βt_player'},
  danger:{title:'Potential danger · notebook definition',text:'Expected net EPV gain, including turnover risk. Success tests ground/lofted passes and interception. Context value includes pressure, defender distance and defenders ahead.',equation:'G = pV_context − (1−p)V_opponent − V_ball\np = max(p_ground, p_loft)'},
- pass:{title:'Pass value',text:'Best off-ball receiver at each cell. Includes projected runs, fitted physical settings, interception and an on-time arrival gate. Extends the notebook model; not separately calibrated. Blue: loss; red: gain.',equation:'Gᵢ = pᵢV_context − (1−pᵢ)V_opponent − V_ball\nPass value = maxᵢ Gᵢ'},
+ pass:{title:'Pass value',text:'Best off-ball receiver per cell: projected runs, fitted movement, interception and an arrival gate. Blue: loss; red: gain. Extends the notebook model. Recommendation arrows: gold outline = best; darker = higher gain; fade ends at 60% of flight.',equation:'Gᵢ = pᵢV_context − (1−pᵢ)V_opponent − V_ball\nPass value = maxᵢ Gᵢ'},
  tiles:{title:'Defensive Tiling',text:'Defender triangles and links: red weak, green strong. Integrity weights denied passes by location value in space at/beyond the ball, with a 5 m buffer. Marking is separate.',equation:'S_tile = mean(1−P_att); S_link = min(1−P_att)\nIntegrity = Σ V_location(1−p_success) / Σ V_location'}
 };
 export function settingHelp(id,value,legacySelected=false){

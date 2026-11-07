@@ -44,9 +44,9 @@ test('preview pause is one second regardless of speed, and completion is drawn b
  p.reset();assert.equal(p.advance(0,10,frames,passes,2000).waiting,true);
 });
 
-test('pass overlay is fully visible at release and eases to zero at completion',()=>{
+test('pass overlay stays visible at release and fades out by 60 percent of flight',()=>{
  const event={release:10,complete:30,period:1};const opacity=f=>passOverlayOpacity(event,{frame:f,period:1});
- assert.equal(opacity(10),1);assert.equal(opacity(20),.6);assert.equal(opacity(30),0);
+ assert.equal(opacity(10),1);assert.ok(opacity(20)<.1);assert.equal(opacity(22),0);assert.equal(opacity(30),0);
  let previous=1;for(let f=10;f<=30;f++){assert.ok(opacity(f)<=previous);previous=opacity(f);}
- assert.ok(opacity(29)<.01);assert.equal(passOverlayOpacity(event,{frame:10,period:2}),0);
+ assert.ok(opacity(21)<.03);assert.equal(passOverlayOpacity(event,{frame:10,period:2}),0);
 });
