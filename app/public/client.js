@@ -1,3 +1,4 @@
+import {playbackPitchHeight} from './layout.js';
 import {SETTING_HELP,settingHelp} from './settings-help.js';
 import {buildIntegrity,integrityColour} from './integrity.js';
 import {PassPlayback,passOverlayOpacity} from './pass-playback.js';
@@ -36,7 +37,7 @@ function passRecommendation(event){
 }
 function drawPassAdvice(px){
  const recommendation=passRecommendation(passPlayback.active);
- if(!recommendation?.options.length){$('passAdvice').textContent='';return;}
+ if(!recommendation?.options.length)return;
  const opacity=passOverlayOpacity(passPlayback.active,frames[index]);
  const opts=recommendation.options,maximum=Math.max(...opts.map(o=>o.gain)),minimum=Math.min(...opts.map(o=>o.gain));
  ctx.save();ctx.globalAlpha=opacity;
@@ -47,7 +48,6 @@ function drawPassAdvice(px){
   ctx.fillStyle=`rgb(${shade},${shade},${shade})`;ctx.fill();ctx.strokeStyle=i===0?'#ffd34d':'#ffffff';ctx.lineWidth=1.5;ctx.stroke();
  }
  ctx.restore();
- $('passAdvice').textContent=`${performance.now()<passPlayback.until?'Pass preview · 1 s pause':'Pass in flight'} · gold = best · darker = higher net EPV gain · fades during first 60% of flight · ${opts.map((o,i)=>`${i===0?'★ ':''}${o.name} ${o.gain>=0?'+':''}${o.gain.toFixed(3)}`).join(' · ')}${opts.length<5?` · ${opts.length} distinct available options`:''} · ${recommendation.source}`;
 }
 function renderIntegrity(f,px,L,W,scale,poly){
  const model=currentIntegrity(f),kind=$('integrityColour').value;
@@ -150,12 +150,26 @@ $('toggleDanger').onclick=()=>{const open=$('toggleDanger').getAttribute('aria-e
 function leaveFocus(){document.body.classList.remove('pitch-focus');$('focusPitch').textContent='Expand pitch';$('focusPitch').setAttribute('aria-pressed','false');requestAnimationFrame(draw);}
 $('focusPitch').onclick=()=>{if(document.body.classList.contains('pitch-focus')){leaveFocus();return;}document.body.classList.add('pitch-focus');$('focusPitch').textContent='Exit expanded view';$('focusPitch').setAttribute('aria-pressed','true');requestAnimationFrame(draw);};
 window.addEventListener('keydown',e=>{if(e.key==='Escape'){if(selected)closeTile();else leaveFocus();}});
-function centerInitialMobileMesh(){
- if(!frames.length||!window.matchMedia('(max-width: 900px)').matches)return;
- // Wait for the initial frame to paint; do this only at startup so later
- // playback, clip loads and control changes never pull the user away.
- requestAnimationFrame(()=>canvas.scrollIntoView({block:'center',inline:'nearest',behavior:'instant'}));
+function fitPlaybackViewport(){
+ if(!canvas.parentElement||!Number.isFinite(window.innerHeight))return;
+ if(document.body.classList.contains('pitch-focus')){canvas.style.height='';return;}
+ const pitch=canvas.parentElement,transport=$('play').closest('.transport'),style=getComputedStyle(transport);
+ const height=playbackPitchHeight({
+  viewportHeight:window.visualViewport?.height??document.documentElement.clientHeight,
+  pitchWidth:canvas.getBoundingClientRect().width,
+  pitchTop:Math.max(0,pitch.getBoundingClientRect().top+window.scrollY),
+  controlsHeight:transport.getBoundingClientRect().height,
+  controlsMargins:(parseFloat(style.marginTop)||0)+(parseFloat(style.marginBottom)||0),
+  mobile:window.matchMedia('(max-width: 900px)').matches
+ });
+ if(canvas.style.height!==`${height}px`)canvas.style.height=`${height}px`;
 }
+function revealPlayback(behavior='instant'){
+ if(!frames.length)return;
+ requestAnimationFrame(()=>{draw();$('play').scrollIntoView({block:'nearest',inline:'nearest',behavior});});
+}
+window.visualViewport?.addEventListener('resize',()=>requestAnimationFrame(draw));
+requestAnimationFrame(fitPlaybackViewport);
 async function get(url){const r=await fetch(url);const data=await r.json();if(!r.ok)throw Error(data.error||'Request failed');return data;}
 function configure(m){meta=m;$('title').textContent=`${m.home_team.name} vs ${m.away_team.name}`;$('dimensions').textContent=`${m.pitch_length} × ${m.pitch_width} m`;$('team').replaceChildren(new Option('Both teams','all'),new Option(m.home_team.name,String(m.home_team.id)),new Option(m.away_team.name,String(m.away_team.id)));}
 function install(data){resetPassAdvice();$('startupLoading').hidden=true;$('play').disabled=false;$('scrub').disabled=false;loadedChance=null;frames=data;index=0;playing=false;$('play').textContent='▶ Play';$('scrub').max=frames.length-1;selected=null;draw();}
@@ -175,7 +189,7 @@ function drawSoccerBall(x,y,tint,detected){
  if(!detected&&$('showEstimates').checked){ctx.beginPath();ctx.arc(0,0,r+1.8,0,Math.PI*2);ctx.strokeStyle='#ffcc81';ctx.lineWidth=.8;ctx.setLineDash([2,2]);ctx.stroke();}
  ctx.restore();
 }
-function draw(){if(!meta||!frames.length)return;const rect=canvas.getBoundingClientRect(),dpr=Math.min(devicePixelRatio||1,2);const pixelWidth=Math.round(rect.width*dpr),pixelHeight=Math.round(rect.height*dpr);if(canvas.width!==pixelWidth)canvas.width=pixelWidth;if(canvas.height!==pixelHeight)canvas.height=pixelHeight;ctx.setTransform(dpr,0,0,dpr,0,0);const w=rect.width,h=rect.height,L=meta.pitch_length,W=meta.pitch_width,scale=Math.min((w-48)/L,(h-40)/W);transform={scale,ox:w/2,oy:h/2};const px=(x,y)=>[w/2+x*scale,h/2-y*scale];
+function draw(){fitPlaybackViewport();if(!meta||!frames.length)return;const rect=canvas.getBoundingClientRect(),dpr=Math.min(devicePixelRatio||1,2);const pixelWidth=Math.round(rect.width*dpr),pixelHeight=Math.round(rect.height*dpr);if(canvas.width!==pixelWidth)canvas.width=pixelWidth;if(canvas.height!==pixelHeight)canvas.height=pixelHeight;ctx.setTransform(dpr,0,0,dpr,0,0);const w=rect.width,h=rect.height,L=meta.pitch_length,W=meta.pitch_width,scale=Math.min((w-48)/L,(h-40)/W);transform={scale,ox:w/2,oy:h/2};const px=(x,y)=>[w/2+x*scale,h/2-y*scale];
  ctx.fillStyle='#102b29';ctx.fillRect(0,0,w,h);const f=frames[index],isIntegrity=currentView==='integrity',points=vertices(f,meta,{team:$('team').value,ball:$('ball').checked,detectedOnly:$('detected').checked});
  const source=possessionSource(frames,index),calculationIndex=source.index??index;
  const calculationFrame=frames[calculationIndex];
@@ -295,14 +309,14 @@ let pendingMeta;
 $('chanceFilter').onchange=fillChances;
 $('phase').onchange=()=>{$('chance').value='';const p=phases[$('phase').value];$('start').value=p?.frame_start??10;};
 $('start').oninput=()=>$('chance').value='';$('duration').onchange=()=>$('chance').value='';
-async function loadClip(chance=null){
+async function loadClip(chance=null,initial=false){
  const token=++request,id=$('match').value;playing=false;$('play').textContent='▶ Play';$('load').disabled=true;
  say('Streaming real tracking data… later clips may take up to 90 seconds.');
  try{const m=(pendingMeta?.id===Number(id)?pendingMeta:null)??await get(`/api/matches/${id}/metadata`);
  const query=chance?`start=${chance.startFrame}&count=${chance.count}&end=${chance.endFrame}&period=${chance.period}`:`start=${encodeURIComponent($('start').value)}&count=${Number($('duration').value)*10}`;
  const [data,model]=await Promise.all([get(`/api/matches/${id}/clip?${query}`),get(`/api/matches/${id}/passing`).catch(()=>null)]);if(token!==request)return;configure(m);passingData=model;install(data);loadedChance=chance;
  draw();
- if(chance){const covers=data[0].frame<=chance.anchorFrame&&data.at(-1).frame>=chance.anchorFrame;const exact=data.some(f=>f.frame===chance.anchorFrame);say(covers?`Chance ready · ${data.length} frames${exact?'':' · exact outcome frame missing; surrounding tracking shown'}.`:'Tracking does not cover the outcome marker for this chance.');canvas.scrollIntoView({block:'center',behavior:'smooth'});}
+ if(chance){const covers=data[0].frame<=chance.anchorFrame&&data.at(-1).frame>=chance.anchorFrame;const exact=data.some(f=>f.frame===chance.anchorFrame);say(covers?`Chance ready · ${data.length} frames${exact?'':' · exact outcome frame missing; surrounding tracking shown'}.`:'Tracking does not cover the outcome marker for this chance.');if(!initial)revealPlayback('smooth');}
  else say(`Ready · ${data.length} frames. Dashed marks indicate estimates.`);
  return true;
  }catch(e){if(token===request){say(e.message);return false;}}finally{if(token===request)$('load').disabled=false;}
@@ -356,12 +370,12 @@ async function startup(){
   const first=pendingMeta?.id===1886347?chances.find(c=>c.highDanger):null;
   if(!first)throw Error('No default high-danger chance available.');
   $('chance').value=first.id;$('start').value=first.startFrame;
-  expected=request+1;const loaded=await loadClip(first);if(request!==expected)return;
+  expected=request+1;const loaded=await loadClip(first,true);if(request!==expected)return;
   if(!loaded)throw Error('The default chance could not be loaded.');
-  centerInitialMobileMesh();
+  revealPlayback();
  }catch(e){
   if(request!==expected)return;
-  await demo();centerInitialMobileMesh();
+  await demo();revealPlayback();
   if(frames.length)say(`${e.message} Showing the bundled fallback clip.`);
   else $('startupLoading').textContent='Unable to load tracking. Please try Return to bundled demo.';
  }

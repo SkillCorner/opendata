@@ -1,6 +1,6 @@
 const legacy={title:'Legacy definition',text:'Original, unfitted danger proxy: goal distance and angle, defensive pressure, reach and interception. Blue/red identify attacking directions. Recommendations still use the notebook model.',equation:'D = Σ sign × possession × lane safety × readiness × control × V'};
 export const SETTING_HELP={
- viewIntegrity:{title:'Defensive Integrity',text:'Fitted notebook model. Pitch control: blue = defence, red = attack. Danger and pass value: blue = loss of EPV, red = gain. Defensive tiles: red = weak, green = strong. Pass arrows: gold outline = best; darker = higher gain. Fade ends at 60% of flight.'},
+ viewIntegrity:{title:'Defensive Integrity',text:'Fitted notebook model. Control: blue defence / red attack. Danger and pass value: blue loss / red gain. Tiles: red weak / green strong. Passes: 1 s preview; up to five distinct arrows. Gold outline = best; darker = higher gain. Arrows fade by 60% of flight.'},
  mode:{title:'Geometry',text:'Delaunay connects nearby sites into triangles. Voronoi assigns each location to its nearest site. Both describe spacing, not pass probability.'},
  team:{title:'Players',text:'Filters player markers and sites in Pitch Tiling. Changes the mesh, while scoring models continue to use both teams.'},
  colour:{title:'Triangle colour'},

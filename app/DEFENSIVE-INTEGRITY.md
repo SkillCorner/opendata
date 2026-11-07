@@ -51,9 +51,9 @@ full opacity; the one-second preview stays fully opaque and arrows are transpare
 by 60% of flight. Playback clamps to that completion frame before removing
 the overlay, even at high speed or across skipped render frames. A gold casing marks the best recommendation; other arrows have white casings.
 Darker inner dashes mean higher-value passes. Filled arrowheads replace numbered
-endpoint circles; a gold star identifies the best option in the text summary.
-Net EPV gains accompany the arrows. Negative gains remain labelled as
-negative, even for the best available pass. Scrubbing clears the overlay and seeks
+endpoint circles; the legend is in the selected Defensive Integrity toggle’s info tooltip.
+The on-pitch preview adds no text banner. Ranking still uses net EPV gain,
+including when all available options have negative gain. Scrubbing clears the overlay and seeks
 the event controller; replay resets the one-time pause history.
 
 ## Validation
@@ -63,3 +63,7 @@ stadium-direction symmetry, one-to-one optimal marking, distinct receiver rankin
 pause duration, completion-frame retention, seeking/replay, both viewer modes,
 all map choices, legacy danger, server resources and Docker packaging. The stored
 reference is a formula check, not a rerun of the notebook's fitting or validation.
+
+The normal pitch height is capped to leave the playback bar within the visible
+viewport. Initial loading reveals Play only if needed; later playback never
+automatically scrolls. The expanded pitch keeps its existing full-screen layout.

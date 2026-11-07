@@ -31,7 +31,7 @@ export const server=http.createServer(async(req,res)=>{try{
  const end=url.searchParams.has('end')?Number(url.searchParams.get('end')):null,period=url.searchParams.has('period')?Number(url.searchParams.get('period')):null;
  if(end!=null&&(!Number.isInteger(end)||end<start||end-start>=600)||period!=null&&![1,2].includes(period))return json(res,400,{error:'Invalid clip end or period'});
  return json(res,200,await clip(id,start,count,end,period));}
- const files={'/':'index.html','/style.css':'style.css','/client.js':'client.js','/geometry.js':'geometry.js','/danger.js':'danger.js','/access.js':'access.js','/passing.js':'passing.js','/integrity.js':'integrity.js','/settings-help.js':'settings-help.js','/pass-playback.js':'pass-playback.js','/possession.js':'possession.js','/d3-delaunay.min.js':'d3-delaunay.min.js','/demo.json':'demo.json'};
+ const files={'/':'index.html','/style.css':'style.css','/client.js':'client.js','/geometry.js':'geometry.js','/danger.js':'danger.js','/access.js':'access.js','/passing.js':'passing.js','/integrity.js':'integrity.js','/settings-help.js':'settings-help.js','/layout.js':'layout.js','/pass-playback.js':'pass-playback.js','/possession.js':'possession.js','/d3-delaunay.min.js':'d3-delaunay.min.js','/demo.json':'demo.json'};
  const file=files[url.pathname];if(!file)return json(res,404,{error:'Not found'});
  const content=await readFile(path.join(root,'app/public',file));res.writeHead(200,{'Content-Type':file.endsWith('.html')?'text/html; charset=utf-8':file.endsWith('.css')?'text/css':file.endsWith('.js')?'text/javascript':'application/json','X-Content-Type-Options':'nosniff'});res.end(content);
  }catch(error){console.error(error.message);json(res,502,{error:error.message});}});

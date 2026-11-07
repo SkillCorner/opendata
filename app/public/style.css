@@ -108,7 +108,7 @@ body.pitch-focus{overflow:hidden}
 .view-toggle button[aria-pressed="true"]{background:#a6ead0;color:#0d2523;box-shadow:0 1px 4px #0004}
 .view-toggle button:hover{color:#fff;background:#28413e}.view-toggle button[aria-pressed="true"]:hover{background:#b9f2dd;color:#0d2523}
 @media(max-width:600px){header{flex-wrap:wrap;gap:10px}.view-switch{margin-left:auto}.view-toggle button{padding:8px 10px;font-size:11px}}
-.pass-advice:empty{display:none}.pass-advice{margin:8px 0;padding:8px 12px;background:#182e32;color:#d9eae5;font-size:11px;line-height:1.5;border:1px dashed #7faaa0;border-radius:6px;flex-shrink:0}
+
 .pitch-focus #dangerPanel{max-height:25dvh;overflow:auto}
 
 .integrity-view #tilingExtras,.integrity-view #meshExplanation,.integrity-view .tiling-edge-legend{display:none}
