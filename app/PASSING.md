@@ -22,7 +22,7 @@ the defenders are even farther away. This receiver-specific extension has not
 been independently calibrated; the notebook's validation scores do not transfer
 directly to it. Colours encode completion chance, not EPV or attacking reward.
 
-Probability below 0.02 (2%) is transparent. A fixed linear scale maps the
+Probability below 0.05 (5%) is transparent. A fixed linear scale maps the
 remaining probabilities from pale white/green to vivid green. No frame-based
 normalisation or colour interpolation creates halos below the cutoff. The mesh
 is drawn beneath the overlay, and player / ball markers above it.

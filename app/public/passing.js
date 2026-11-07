@@ -1,7 +1,7 @@
 // Receiver-specific extension of defensive_shape_integrity.ipynb's fitted value_points.
 // The extra arrival gate localises each halo: winning a race is insufficient if
 // neither side can reach the pass. This continuous surface is not separately fitted.
-export const MIN_RECEIVE_PROBABILITY=0.02; // 2%.
+export const MIN_RECEIVE_PROBABILITY=0.05; // 5%.
 const sig=x=>1/(1+Math.exp(-x));
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 export function haloColour(p){

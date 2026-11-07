@@ -87,7 +87,7 @@ function draw(){if(!meta||!frames.length)return;const rect=canvas.getBoundingCli
  // Team edges are drawn independently of the tile fill/score.
  for(let e=0;e<3;e++){const p=vs[e],q=vs[(e+1)%3];const pt=new Set(p.members.filter(m=>m.id!=='ball').map(m=>m.team)),qt=new Set(q.members.filter(m=>m.id!=='ball').map(m=>m.team));const same=pt.size===1&&qt.size===1&&[...pt][0]=== [...qt][0];ctx.beginPath();ctx.moveTo(...px(p.x,p.y));ctx.lineTo(...px(q.x,q.y));ctx.globalAlpha=.95;ctx.strokeStyle=same?teamColour([...pt][0]):'#f4d292';ctx.lineWidth=same?2.5:1.8;ctx.setLineDash(same?[]:[5,3]);ctx.stroke();}ctx.setLineDash([]);}}
  $('receivingLegend').hidden=!$('showReceiving').checked;
- $('receivingStatus').textContent=haloModel?.reason??'Pale: slim chance · bright green: high chance · below 2% hidden';
+ $('receivingStatus').textContent=haloModel?.reason??'Pale: slim chance · bright green: high chance · below 5% hidden';
  const chosen=triangles.find(t=>t.key===selected);
  if(chosen){poly(chosen.vs);ctx.globalAlpha=1;ctx.setLineDash([]);ctx.strokeStyle='#071219';ctx.lineWidth=6;ctx.stroke();ctx.strokeStyle='#ffffff';ctx.lineWidth=3;ctx.stroke();}
  ctx.restore();
@@ -104,8 +104,8 @@ function draw(){if(!meta||!frames.length)return;const rect=canvas.getBoundingCli
     ctx.moveTo(...px(-L/2+x1,W/2-y1));ctx.lineTo(...px(-L/2+x2,W/2-y2));
    }
    ctx.setLineDash([]);ctx.lineJoin='round';
-   ctx.strokeStyle='#123f22';ctx.lineWidth=2.5;ctx.stroke();
-   ctx.strokeStyle='#baffbf';ctx.lineWidth=1.2;ctx.stroke();ctx.restore();
+   ctx.strokeStyle='#06250e';ctx.lineWidth=4.5;ctx.stroke();
+   ctx.strokeStyle='#d0ff85';ctx.lineWidth=2.5;ctx.stroke();ctx.restore();
   }
  }
  ctx.globalAlpha=1;ctx.setLineDash([]);ctx.strokeStyle='#6c9690';ctx.lineWidth=1;ctx.strokeRect(...px(-L/2,W/2),L*scale,W*scale);ctx.beginPath();ctx.moveTo(...px(0,-W/2));ctx.lineTo(...px(0,W/2));ctx.stroke();ctx.beginPath();ctx.arc(...px(0,0),9.15*scale,0,Math.PI*2);ctx.stroke();for(const side of [-1,1]){const x=side<0?-L/2:L/2-16.5;ctx.strokeRect(...px(x,20.16),16.5*scale,40.32*scale);const gx=side<0?-L/2:L/2-5.5;ctx.strokeRect(...px(gx,9.16),5.5*scale,18.32*scale);}

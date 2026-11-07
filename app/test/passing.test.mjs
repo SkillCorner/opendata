@@ -14,7 +14,7 @@ test('specific receiver, excluded carrier, interceptions and unreachable destina
  assert.ok(clear.at(clear.receivers[0],q)>.8);
  assert.ok(blocked.at(blocked.receivers[0],q)<clear.at(clear.receivers[0],q));
  assert.ok(clear.at(clear.receivers[0],{x:-10,y:30})<MIN_RECEIVE_PROBABILITY);
- assert.equal(haloColour(.019999),null);assert.ok(haloColour(.02));assert.deepEqual(haloColour(1),[0,255,0,209]);
+ assert.equal(haloColour(.049999),null);assert.ok(haloColour(.05));assert.deepEqual(haloColour(1),[0,255,0,209]);
 });
 test('receiver motion changes reach and unknown possession produces no halo',()=>{
  const f=frame(),before=structuredClone(f),after=structuredClone(f);before.frame=8;after.frame=12;before.player_data[1].x=11;after.player_data[1].x=13;
